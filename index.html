@@ -171,6 +171,14 @@
   @keyframes spin{to{transform:rotate(360deg);}}
   .hint{font-size:0.78rem;color:var(--muted);margin-top:8px;line-height:1.5;}
 
+  .inapp-banner{
+    display:none;
+    background:#fff6e0;border:1.5px solid #f0c14b;border-radius:12px;
+    padding:12px 14px;margin-bottom:18px;font-size:0.85rem;line-height:1.6;color:#6b4e00;
+  }
+  .inapp-banner.show{display:block;}
+  .inapp-banner b{color:#8a5a00;}
+
   .preview-box{
     border:1px solid var(--border);border-radius:10px;overflow:hidden;margin-top:6px;
     font-size:0.7rem;
@@ -191,6 +199,11 @@
     <h1>แบบฟอร์มเอกสารขั้นตอนการทำงาน</h1>
     <p>กรอกข้อมูล เพิ่มขั้นตอนพร้อมรูปภาพและคำอธิบาย แล้วดาวน์โหลดเป็นไฟล์ Excel (.xlsx)</p>
   </header>
+
+  <div class="inapp-banner" id="inapp-banner">
+    ⚠️ <b>คุณกำลังเปิดหน้านี้ผ่านแอปแชท (เช่น LINE/Facebook)</b> ซึ่งมักดาวน์โหลดไฟล์ไม่ได้<br>
+    ถ้ากดดาวน์โหลดแล้วไม่มีอะไรเกิดขึ้น ให้แตะปุ่ม "···" มุมขวาบน แล้วเลือก <b>"เปิดใน Chrome/Safari"</b> (Open in Browser) ก่อนกดดาวน์โหลดอีกครั้ง
+  </div>
 
   <section class="card">
     <h2><span class="badge">1</span>ข้อมูลเอกสาร</h2>
@@ -287,6 +300,11 @@
 <script>
 (function(){
   "use strict";
+
+  function isInAppBrowser(){
+    const ua = navigator.userAgent || '';
+    return /Line\//i.test(ua) || /FBAN|FBAV|FB_IAB/i.test(ua) || /Instagram/i.test(ua) || /MessengerLiteForiOS|MessengerForiOS/i.test(ua) || /; wv\)/i.test(ua);
+  }
 
   const LOGO_FILE_URL = 'New_Logo_Win_chance_final01.jpg';
   let DEFAULT_LOGO = null; // populated asynchronously by loadDefaultLogoFromRepo()
@@ -900,17 +918,47 @@
 
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
       const fnameBase = sanitizeFilename(title) + (docNo ? '_'+sanitizeFilename(docNo) : '');
-      a.href = url;
-      a.download = fnameBase + '.xlsx';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      setTimeout(()=>URL.revokeObjectURL(url), 4000);
+      const fileName = fnameBase + '.xlsx';
 
-      setStatus('ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว ✓', 'ok');
+      // Mobile in-app browsers (LINE, Facebook, Instagram, Messenger) often block
+      // the classic <a download> + blob-URL trick silently. The Web Share API
+      // (sharing an actual File) routes through the OS share sheet instead, which
+      // works inside most of those in-app browsers. Try it first when available,
+      // and fall back to the normal download link otherwise.
+      const shareFile = new File([blob], fileName, { type: blob.type });
+      let sharedOk = false;
+      if(navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] })){
+        try{
+          await navigator.share({ files: [shareFile], title: fileName });
+          sharedOk = true;
+          setStatus('ส่งไฟล์ Excel เรียบร้อยแล้ว ✓ (เลือก "บันทึกไฟล์" จากเมนูแชร์เพื่อเก็บไว้)', 'ok');
+        }catch(shareErr){
+          if(shareErr && shareErr.name === 'AbortError'){
+            // User closed the share sheet without picking anything — not an error.
+            sharedOk = true;
+            setStatus('', '');
+          }
+          // Any other share failure: fall through to the normal download below.
+        }
+      }
+
+      if(!sharedOk){
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+
+        if(isInAppBrowser()){
+          setStatus('กดดาวน์โหลดแล้ว ถ้าไม่มีไฟล์ขึ้นมา ให้แตะ "···" มุมขวาบนแล้วเลือก "เปิดใน Chrome/Safari" ก่อนลองใหม่อีกครั้ง', 'error');
+        } else {
+          setStatus('ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว ✓', 'ok');
+        }
+      }
     }catch(err){
       console.error(err);
       setStatus('เกิดข้อผิดพลาดในการสร้างไฟล์: ' + (err && err.message ? err.message : err), 'error');
@@ -923,6 +971,10 @@
   document.getElementById('btn-export').onclick = exportExcel;
 
   // init
+  if(isInAppBrowser()){
+    const banner = document.getElementById('inapp-banner');
+    if(banner) banner.classList.add('show');
+  }
   document.getElementById('f-date').value = todayStr();
   steps.push(newStep());
   renderSteps();
