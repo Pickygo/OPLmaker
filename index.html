@@ -191,18 +191,45 @@
   .preview-subtitle{background:var(--cream);color:var(--navy-dark);font-weight:700;text-align:center;flex:1;display:flex;align-items:center;justify-content:center;padding:6px;font-size:0.72rem;}
   .preview-meta{width:30%;display:flex;flex-direction:column;}
   .preview-meta div{background:#eaf0f8;border-bottom:1px solid var(--border);padding:5px 6px;font-size:0.66rem;}
+
+  .mode-toggle{display:flex;gap:8px;margin-bottom:6px;}
+  .mode-pill{
+    flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:9px;
+    background:#fbfcfe;font-weight:600;font-size:0.85rem;cursor:pointer;
+    font-family:inherit;color:var(--text);
+  }
+  .mode-pill.active{border-color:var(--accent);background:#eef4ff;color:var(--navy-dark);}
+  .mode-pill:hover{border-color:var(--accent);}
+
+  .flow-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
+  .flow-toolbar button{font-size:0.84rem;padding:9px 12px;}
+  .flow-toolbar button.active-mode{border-color:var(--accent);background:#eef4ff;color:var(--navy-dark);}
+  .flow-canvas-wrap{
+    position:relative;border:1px solid var(--border);border-radius:10px;
+    background:#fff;overflow:auto;touch-action:none;
+  }
+  #flow-canvas{display:block;touch-action:none;}
+  .flow-edit-box{
+    position:absolute;z-index:5;font-family:inherit;font-size:0.82rem;line-height:1.3;
+    padding:5px 6px;border:2px solid var(--accent);border-radius:6px;resize:none;
+    background:#fff;color:var(--text);
+  }
+  .flow-edit-box:focus{outline:none;}
+
+  .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+  button.secondary.small{padding:10px 14px;font-size:0.85rem;}
 </style>
 </head>
 <body>
 <div class="wrap">
   <header class="page-head">
     <h1>แบบฟอร์มเอกสารขั้นตอนการทำงาน</h1>
-    <p>กรอกข้อมูล เพิ่มขั้นตอนพร้อมรูปภาพและคำอธิบาย แล้วดาวน์โหลดเป็นไฟล์ Excel (.xlsx)</p>
+    <p>กรอกข้อมูล เลือกรูปแบบตารางหรือ Flow แล้วกด "แชร์" เพื่อส่งเข้า LINE/อีเมลได้ทันที หรือ "ดาวน์โหลด" เป็นไฟล์ Excel (.xlsx)</p>
   </header>
 
   <div class="inapp-banner" id="inapp-banner">
-    ⚠️ <b>คุณกำลังเปิดหน้านี้ผ่านแอปแชท (เช่น LINE/Facebook)</b> ซึ่งมักดาวน์โหลดไฟล์ไม่ได้<br>
-    ถ้ากดดาวน์โหลดแล้วไม่มีอะไรเกิดขึ้น ให้แตะปุ่ม "···" มุมขวาบน แล้วเลือก <b>"เปิดใน Chrome/Safari"</b> (Open in Browser) ก่อนกดดาวน์โหลดอีกครั้ง
+    ⚠️ <b>คุณกำลังเปิดหน้านี้ผ่านแอปแชท (เช่น LINE/Facebook)</b><br>
+    แนะนำให้กดปุ่ม <b>"📤 แชร์ไฟล์"</b> ด้านล่างเพื่อส่งไฟล์เข้าแชทหรืออีเมลได้โดยตรง ถ้าใช้ปุ่ม "ดาวน์โหลด" แล้วไม่มีอะไรเกิดขึ้น ให้แตะ "···" มุมขวาบน แล้วเลือก <b>"เปิดใน Chrome/Safari"</b> ก่อนลองใหม่
   </div>
 
   <section class="card">
@@ -281,9 +308,31 @@
 
   <section class="card">
     <h2><span class="badge">2</span>ขั้นตอนการทำงาน</h2>
-    <div id="steps-container"></div>
-    <button class="add-step-btn" id="btn-add-step" type="button">+ เพิ่มขั้นตอน</button>
-    <p class="hint">แต่ละขั้นตอนใส่คำอธิบายและแทรกรูปภาพประกอบได้ ใช้ปุ่ม ▲ ▼ เพื่อจัดลำดับใหม่ และปุ่มถังขยะเพื่อลบขั้นตอน</p>
+
+    <div class="mode-toggle" id="mode-toggle">
+      <button type="button" class="mode-pill active" data-mode="table">📋 แบบตาราง</button>
+      <button type="button" class="mode-pill" data-mode="flow">🧩 แบบ Flow (กล่อง+ลูกศร)</button>
+    </div>
+    <p class="hint" style="margin-top:0;margin-bottom:14px;">เลือก "แบบตาราง" เพื่อกรอกขั้นตอนเป็นรายการปกติ หรือ "แบบ Flow" เพื่อวาดเป็นแผนภาพกล่องและลูกศรตามต้องการ</p>
+
+    <div id="table-mode-content">
+      <div id="steps-container"></div>
+      <button class="add-step-btn" id="btn-add-step" type="button">+ เพิ่มขั้นตอน</button>
+      <p class="hint">แต่ละขั้นตอนใส่คำอธิบายและแทรกรูปภาพประกอบได้ ใช้ปุ่ม ▲ ▼ เพื่อจัดลำดับใหม่ และปุ่มถังขยะเพื่อลบขั้นตอน</p>
+    </div>
+
+    <div id="flow-mode-content" style="display:none;">
+      <div class="flow-toolbar">
+        <button type="button" class="secondary" id="btn-flow-addbox">+ เพิ่มกล่อง</button>
+        <button type="button" class="secondary" id="btn-flow-addarrow">➚ เพิ่มลูกศร</button>
+        <button type="button" class="secondary" id="btn-flow-delete">🗑 ลบที่เลือก</button>
+        <button type="button" class="secondary" id="btn-flow-clear">ล้าง Flow ทั้งหมด</button>
+      </div>
+      <div class="flow-canvas-wrap" id="flow-canvas-wrap">
+        <canvas id="flow-canvas" width="680" height="408"></canvas>
+      </div>
+      <p class="hint">กด "+ เพิ่มกล่อง" เพื่อวางกล่องใหม่ แล้วลาก/แตะค้างเพื่อย้ายตำแหน่ง แตะสองครั้งที่กล่องเพื่อแก้ไขข้อความในกล่อง กด "➚ เพิ่มลูกศร" แล้วแตะกล่องต้นทางและกล่องปลายทางตามลำดับเพื่อวาดลูกศรเชื่อม แตะกล่องหรือลูกศรเพื่อเลือกก่อนกด "ลบที่เลือก"</p>
+    </div>
   </section>
 
   <div class="footer-bar">
@@ -291,8 +340,10 @@
       <div id="status-msg" class="status-msg"></div>
     </div>
     <div class="btn-row">
-      <button class="secondary" id="btn-reset" type="button">ล้างฟอร์ม</button>
-      <button class="primary" id="btn-export" type="button">⬇ ดาวน์โหลดเป็นไฟล์ Excel</button>
+      <button class="secondary small" id="btn-reset" type="button">ล้างฟอร์ม</button>
+      <button class="secondary small" id="btn-email" type="button">✉️ อีเมล</button>
+      <button class="secondary small" id="btn-download" type="button">⬇ ดาวน์โหลด</button>
+      <button class="primary" id="btn-share" type="button">📤 แชร์ไฟล์</button>
     </div>
   </div>
 </div>
@@ -494,6 +545,326 @@
     return checked ? checked.value : 'basic';
   }
 
+  // ---------- Mode toggle (table vs flow) ----------
+  let currentMode = 'table';
+  const modeToggle = document.getElementById('mode-toggle');
+  const tableModeContent = document.getElementById('table-mode-content');
+  const flowModeContent = document.getElementById('flow-mode-content');
+
+  modeToggle.addEventListener('click', function(e){
+    const btn = e.target.closest('.mode-pill');
+    if(!btn || btn.dataset.mode === currentMode) return;
+    currentMode = btn.dataset.mode;
+    modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b===btn));
+    tableModeContent.style.display = currentMode==='table' ? '' : 'none';
+    flowModeContent.style.display = currentMode==='flow' ? '' : 'none';
+    if(currentMode==='flow') requestAnimationFrame(resizeFlowCanvas);
+  });
+
+  // ---------- Flow canvas (basic boxes + arrows) ----------
+  const flowCanvas = document.getElementById('flow-canvas');
+  const flowCtx = flowCanvas.getContext('2d');
+  const flowWrap = document.getElementById('flow-canvas-wrap');
+  let flowBoxes = []; // {id,x,y,w,h,text}
+  let flowArrows = []; // {id,from,to}
+  let flowNextId = 1;
+  let flowSelectedBoxId = null;
+  let flowSelectedArrowId = null;
+  let flowArrowMode = false;
+  let flowArrowSourceId = null;
+  let flowDrag = null; // {id, offX, offY}
+
+  function flowUid(prefix){ return prefix + (flowNextId++); }
+
+  function boxCenter(b){ return { x: b.x + b.w/2, y: b.y + b.h/2 }; }
+
+  function edgePoint(b, tx, ty){
+    const cx = b.x + b.w/2, cy = b.y + b.h/2;
+    const dx = tx - cx, dy = ty - cy;
+    if(dx===0 && dy===0) return { x:cx, y:cy };
+    const halfW = b.w/2, halfH = b.h/2;
+    const scaleX = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
+    const scaleY = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
+    const scale = Math.min(scaleX, scaleY);
+    return { x: cx + dx*scale, y: cy + dy*scale };
+  }
+
+  function roundRect(ctx,x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.closePath();
+  }
+
+  function wrapFlowText(ctx, text, maxWidth){
+    const words = String(text||'').split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = '';
+    words.forEach(w=>{
+      const test = line ? line+' '+w : w;
+      if(ctx.measureText(test).width > maxWidth && line){
+        lines.push(line); line = w;
+      } else {
+        line = test;
+      }
+    });
+    if(line) lines.push(line);
+    return lines.length ? lines : [''];
+  }
+
+  function drawArrowHead(ctx, x, y, angle, size, color){
+    ctx.save();
+    ctx.translate(x,y);
+    ctx.rotate(angle);
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    ctx.lineTo(-size, size*0.55);
+    ctx.lineTo(-size, -size*0.55);
+    ctx.closePath();
+    ctx.fillStyle = color;
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function distToSegment(px,py,x1,y1,x2,y2){
+    const dx=x2-x1, dy=y2-y1;
+    const lenSq = dx*dx+dy*dy;
+    let t = lenSq ? ((px-x1)*dx+(py-y1)*dy)/lenSq : 0;
+    t = Math.max(0, Math.min(1,t));
+    const cx = x1+t*dx, cy = y1+t*dy;
+    return Math.hypot(px-cx, py-cy);
+  }
+
+  function hitFlowBox(x,y){
+    for(let i=flowBoxes.length-1;i>=0;i--){
+      const b = flowBoxes[i];
+      if(x>=b.x && x<=b.x+b.w && y>=b.y && y<=b.y+b.h) return b;
+    }
+    return null;
+  }
+
+  function hitFlowArrow(x,y){
+    const THRESH = 8;
+    for(let i=flowArrows.length-1;i>=0;i--){
+      const arrow = flowArrows[i];
+      const a = flowBoxes.find(b=>b.id===arrow.from);
+      const b = flowBoxes.find(b=>b.id===arrow.to);
+      if(!a||!b) continue;
+      const cA=boxCenter(a), cB=boxCenter(b);
+      const p1=edgePoint(a,cB.x,cB.y), p2=edgePoint(b,cA.x,cA.y);
+      if(distToSegment(x,y,p1.x,p1.y,p2.x,p2.y) <= THRESH) return arrow;
+    }
+    return null;
+  }
+
+  function drawFlow(){
+    const ctx = flowCtx;
+    const W = flowCanvas.width, H = flowCanvas.height;
+    ctx.clearRect(0,0,W,H);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0,0,W,H);
+
+    flowArrows.forEach(arrow=>{
+      const a = flowBoxes.find(b=>b.id===arrow.from);
+      const b = flowBoxes.find(b=>b.id===arrow.to);
+      if(!a || !b) return;
+      const cA = boxCenter(a), cB = boxCenter(b);
+      const p1 = edgePoint(a, cB.x, cB.y);
+      const p2 = edgePoint(b, cA.x, cA.y);
+      const selected = arrow.id===flowSelectedArrowId;
+      const color = selected ? '#d64545' : '#2f6fed';
+      ctx.strokeStyle = color;
+      ctx.lineWidth = selected ? 3 : 2.2;
+      ctx.beginPath();
+      ctx.moveTo(p1.x,p1.y);
+      ctx.lineTo(p2.x,p2.y);
+      ctx.stroke();
+      const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x);
+      drawArrowHead(ctx, p2.x, p2.y, angle, 9, color);
+    });
+
+    flowBoxes.forEach(b=>{
+      const selected = b.id===flowSelectedBoxId;
+      const isArrowSrc = b.id===flowArrowSourceId;
+      ctx.fillStyle = isArrowSrc ? '#fff6e0' : '#eef4ff';
+      ctx.strokeStyle = selected ? '#2f6fed' : (isArrowSrc ? '#f0c14b' : '#9db3d6');
+      ctx.lineWidth = (selected || isArrowSrc) ? 2.5 : 1.5;
+      roundRect(ctx, b.x, b.y, b.w, b.h, 10);
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = '#1e3a5f';
+      ctx.font = '600 13px Sarabun, sans-serif';
+      ctx.textBaseline = 'top';
+      const lines = wrapFlowText(ctx, b.text, b.w-16).slice(0,5);
+      const lineH = 16;
+      const startY = b.y + Math.max(8, (b.h - lines.length*lineH)/2);
+      lines.forEach((ln,i)=>{ ctx.fillText(ln, b.x+8, startY + i*lineH); });
+    });
+  }
+
+  function addFlowBox(){
+    const id = flowUid('b');
+    const idx = flowBoxes.length;
+    const col = idx % 3, row = Math.floor(idx/3);
+    flowBoxes.push({ id, x: 30+col*210, y: 24+row*120, w:170, h:76, text:'ขั้นตอน '+(idx+1) });
+    flowSelectedBoxId = id;
+    flowSelectedArrowId = null;
+    drawFlow();
+  }
+
+  function getFlowCanvasPos(evt){
+    const rect = flowCanvas.getBoundingClientRect();
+    const scaleX = flowCanvas.width / rect.width;
+    const scaleY = flowCanvas.height / rect.height;
+    return { x: (evt.clientX - rect.left) * scaleX, y: (evt.clientY - rect.top) * scaleY };
+  }
+
+  function openFlowTextEditor(box){
+    const existing = flowWrap.querySelector('.flow-edit-box');
+    if(existing) existing.remove();
+    const rect = flowCanvas.getBoundingClientRect();
+    const wrapRect = flowWrap.getBoundingClientRect();
+    const scaleX = rect.width / flowCanvas.width;
+    const scaleY = rect.height / flowCanvas.height;
+
+    const ta = document.createElement('textarea');
+    ta.className = 'flow-edit-box';
+    ta.value = box.text;
+    ta.style.left = (rect.left - wrapRect.left + box.x*scaleX) + 'px';
+    ta.style.top = (rect.top - wrapRect.top + box.y*scaleY) + 'px';
+    ta.style.width = (box.w*scaleX) + 'px';
+    ta.style.height = (box.h*scaleY) + 'px';
+    flowWrap.appendChild(ta);
+    ta.focus();
+    ta.select();
+
+    function commit(){
+      box.text = ta.value;
+      if(ta.parentNode) ta.parentNode.removeChild(ta);
+      drawFlow();
+    }
+    ta.addEventListener('blur', commit);
+    ta.addEventListener('keydown', function(ev){
+      if(ev.key==='Enter' && !ev.shiftKey){ ev.preventDefault(); ta.blur(); }
+      else if(ev.key==='Escape'){ ta.value = box.text; ta.blur(); }
+    });
+  }
+
+  flowCanvas.addEventListener('pointerdown', function(e){
+    flowCanvas.setPointerCapture(e.pointerId);
+    const pos = getFlowCanvasPos(e);
+    const box = hitFlowBox(pos.x,pos.y);
+
+    if(flowArrowMode){
+      if(box){
+        if(!flowArrowSourceId){
+          flowArrowSourceId = box.id;
+        } else if(flowArrowSourceId !== box.id){
+          flowArrows.push({ id: flowUid('a'), from:flowArrowSourceId, to:box.id });
+          flowArrowSourceId = null;
+          flowArrowMode = false;
+          document.getElementById('btn-flow-addarrow').classList.remove('active-mode');
+          document.getElementById('btn-flow-addarrow').textContent = '➚ เพิ่มลูกศร';
+        }
+      } else {
+        flowArrowSourceId = null;
+      }
+      drawFlow();
+      return;
+    }
+
+    if(box){
+      flowSelectedBoxId = box.id;
+      flowSelectedArrowId = null;
+      flowDrag = { id: box.id, offX: pos.x-box.x, offY: pos.y-box.y };
+    } else {
+      const arrow = hitFlowArrow(pos.x,pos.y);
+      flowSelectedArrowId = arrow ? arrow.id : null;
+      flowSelectedBoxId = null;
+    }
+    drawFlow();
+  });
+
+  flowCanvas.addEventListener('pointermove', function(e){
+    if(!flowDrag) return;
+    const pos = getFlowCanvasPos(e);
+    const box = flowBoxes.find(b=>b.id===flowDrag.id);
+    if(!box) return;
+    box.x = Math.max(0, Math.min(flowCanvas.width-box.w, pos.x - flowDrag.offX));
+    box.y = Math.max(0, Math.min(flowCanvas.height-box.h, pos.y - flowDrag.offY));
+    drawFlow();
+  });
+
+  function endFlowDrag(e){
+    if(flowDrag){
+      try{ flowCanvas.releasePointerCapture(e.pointerId); }catch(_){}
+    }
+    flowDrag = null;
+  }
+  flowCanvas.addEventListener('pointerup', endFlowDrag);
+  flowCanvas.addEventListener('pointercancel', endFlowDrag);
+
+  flowCanvas.addEventListener('dblclick', function(e){
+    const pos = getFlowCanvasPos(e);
+    const box = hitFlowBox(pos.x,pos.y);
+    if(box) openFlowTextEditor(box);
+  });
+
+  function resizeFlowCanvas(){
+    const newW = Math.max(320, Math.min(680, Math.floor(flowWrap.clientWidth) - 2 || 680));
+    const newH = Math.round(newW * 0.6);
+    const oldW = flowCanvas.width || newW, oldH = flowCanvas.height || newH;
+    if(oldW === newW && oldH === newH){ drawFlow(); return; }
+    if(flowBoxes.length){
+      const sx = newW/oldW, sy = newH/oldH;
+      flowBoxes.forEach(b=>{ b.x*=sx; b.y*=sy; b.w*=sx; b.h*=sy; });
+    }
+    flowCanvas.width = newW;
+    flowCanvas.height = newH;
+    drawFlow();
+  }
+  window.addEventListener('resize', function(){ if(currentMode==='flow') resizeFlowCanvas(); });
+
+  document.getElementById('btn-flow-addbox').onclick = addFlowBox;
+
+  document.getElementById('btn-flow-addarrow').onclick = function(){
+    flowArrowMode = !flowArrowMode;
+    flowArrowSourceId = null;
+    this.classList.toggle('active-mode', flowArrowMode);
+    this.textContent = flowArrowMode ? 'แตะกล่องต้นทาง แล้วปลายทาง (กดอีกครั้งเพื่อยกเลิก)' : '➚ เพิ่มลูกศร';
+    drawFlow();
+  };
+
+  document.getElementById('btn-flow-delete').onclick = function(){
+    if(flowSelectedBoxId){
+      flowArrows = flowArrows.filter(a=>a.from!==flowSelectedBoxId && a.to!==flowSelectedBoxId);
+      flowBoxes = flowBoxes.filter(b=>b.id!==flowSelectedBoxId);
+      flowSelectedBoxId = null;
+    } else if(flowSelectedArrowId){
+      flowArrows = flowArrows.filter(a=>a.id!==flowSelectedArrowId);
+      flowSelectedArrowId = null;
+    } else {
+      setStatus('กรุณาแตะเลือกกล่องหรือลูกศรที่ต้องการลบก่อน', 'error');
+      return;
+    }
+    drawFlow();
+  };
+
+  document.getElementById('btn-flow-clear').onclick = function(){
+    if(!flowBoxes.length && !flowArrows.length) return;
+    if(!confirm('ต้องการล้าง Flow ทั้งหมดใช่หรือไม่?')) return;
+    flowBoxes = []; flowArrows = [];
+    flowSelectedBoxId = null; flowSelectedArrowId = null;
+    flowArrowMode = false; flowArrowSourceId = null;
+    document.getElementById('btn-flow-addarrow').classList.remove('active-mode');
+    document.getElementById('btn-flow-addarrow').textContent = '➚ เพิ่มลูกศร';
+    drawFlow();
+  };
+
   async function handleImageInput(step, file){
     if(!file) return;
     if(!/^image\//.test(file.type)){ setStatus('ไฟล์ที่เลือกไม่ใช่รูปภาพ', 'error'); return; }
@@ -611,6 +982,19 @@
     steps.length = 0;
     steps.push(newStep());
     renderSteps();
+
+    flowBoxes = []; flowArrows = [];
+    flowSelectedBoxId = null; flowSelectedArrowId = null;
+    flowArrowMode = false; flowArrowSourceId = null;
+    const flowArrowBtn = document.getElementById('btn-flow-addarrow');
+    flowArrowBtn.classList.remove('active-mode');
+    flowArrowBtn.textContent = '➚ เพิ่มลูกศร';
+    drawFlow();
+    currentMode = 'table';
+    modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b.dataset.mode==='table'));
+    tableModeContent.style.display = '';
+    flowModeContent.style.display = 'none';
+
     setStatus('','');
   };
 
@@ -640,7 +1024,7 @@
     trouble: { th:'การแก้ไขปัญหา',  en:'TROUBLE CASE' }
   };
 
-  async function exportExcel(){
+  async function buildWorkbookBlob(){
     const docLabel = document.getElementById('f-doclabel').value.trim() || 'One Point Lesson';
     const title = document.getElementById('f-title').value.trim();
     const docNo = document.getElementById('f-docno').value.trim();
@@ -651,22 +1035,25 @@
     const classification = getClassification();
 
     if(!title){
-      setStatus('กรุณากรอก "หัวข้อเรื่อง" ก่อนดาวน์โหลด', 'error');
+      setStatus('กรุณากรอก "หัวข้อเรื่อง" ก่อนดำเนินการ', 'error');
       document.getElementById('f-title').focus();
-      return;
+      return null;
     }
-    if(steps.length===0 || steps.every(s=>!s.desc.trim() && !s.imgDataUrl)){
-      setStatus('กรุณาเพิ่มอย่างน้อย 1 ขั้นตอนที่มีคำอธิบายหรือรูปภาพ', 'error');
-      return;
+    if(currentMode==='flow'){
+      if(flowBoxes.length===0){
+        setStatus('กรุณาเพิ่มอย่างน้อย 1 กล่องใน Flow ก่อนดำเนินการ', 'error');
+        return null;
+      }
+    } else {
+      if(steps.length===0 || steps.every(s=>!s.desc.trim() && !s.imgDataUrl)){
+        setStatus('กรุณาเพิ่มอย่างน้อย 1 ขั้นตอนที่มีคำอธิบายหรือรูปภาพ', 'error');
+        return null;
+      }
     }
 
-    const exportBtn = document.getElementById('btn-export');
-    exportBtn.disabled = true;
-    const originalHtml = exportBtn.innerHTML;
-    exportBtn.innerHTML = '<span class="spinner"></span> กำลังสร้างไฟล์...';
     setStatus('กำลังสร้างไฟล์ Excel กรุณารอสักครู่...', '');
 
-    try{
+    {
       const wb = new ExcelJS.Workbook();
       wb.creator = 'แบบฟอร์มเอกสารขั้นตอนการทำงาน';
       wb.created = new Date();
@@ -847,128 +1234,196 @@
       // section header
       ws.mergeCells(r,1,r,6);
       c = ws.getCell(r,1);
-      c.value = 'ขั้นตอนการทำงาน';
+      c.value = currentMode==='flow' ? 'แผนภาพขั้นตอนการทำงาน (Flow)' : 'ขั้นตอนการทำงาน';
       c.font = { bold:true, size:12, color:{argb:'FF1E3A5F'} };
       ws.getRow(r).height = 22;
       r++;
 
-      // table header
-      const headers = ['ลำดับ','รายละเอียด / คำอธิบาย','รูปภาพประกอบ'];
-      ws.getCell(r,1).value = headers[0];
-      ws.mergeCells(r,2,r,4);
-      ws.getCell(r,2).value = headers[1];
-      ws.mergeCells(r,5,r,6);
-      ws.getCell(r,5).value = headers[2];
-      [1,2,5].forEach(colI=>{
-        const cell = ws.getCell(r,colI);
-        cell.font = { bold:true, color:{argb:'FFFFFFFF'} };
-        cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:ACCENT} };
-        cell.alignment = { horizontal:'center', vertical:'middle' };
-      });
-      for(let colI=1; colI<=6; colI++) styleBorder(ws.getCell(r,colI), 'FFB9C6D9');
-      ws.getRow(r).height = 22;
-      r++;
-
-      steps.forEach((step, idx)=>{
-        const rowIdx = r;
-        const descLines = (step.desc || '-').split('\n').length;
-        let rowHeightPt = Math.max(50, descLines*16 + 20);
-        if(step.imgDataUrl){
-          const imgHpt = step.dispH * 0.78 + 16;
-          rowHeightPt = Math.max(rowHeightPt, imgHpt);
-        }
-
-        const noCell = ws.getCell(rowIdx,1);
-        noCell.value = idx+1;
-        noCell.alignment = { horizontal:'center', vertical:'middle' };
-        noCell.font = { bold:true, color:{argb:'FF1E3A5F'} };
-
-        ws.mergeCells(rowIdx,2,rowIdx,4);
-        const descCell = ws.getCell(rowIdx,2);
-        descCell.value = step.desc || '-';
-        descCell.alignment = { horizontal:'left', vertical:'top', wrapText:true, indent:1 };
-
-        ws.mergeCells(rowIdx,5,rowIdx,6);
-        const imgCellAnchor = ws.getCell(rowIdx,5);
-        imgCellAnchor.value = step.imgDataUrl ? '' : '-';
-        imgCellAnchor.alignment = { horizontal:'center', vertical:'middle' };
-
-        for(let colI=1; colI<=6; colI++){
-          styleBorder(ws.getCell(rowIdx,colI));
-          if(idx % 2 === 1){
-            ws.getCell(rowIdx,colI).fill = { type:'pattern', pattern:'solid', fgColor:{argb:ZEBRA} };
-          }
-        }
-
-        ws.getRow(rowIdx).height = rowHeightPt;
-
-        if(step.imgDataUrl){
-          const imgId = wb.addImage({
-            base64: step.imgDataUrl.split(',')[1],
-            extension: step.imgExt === 'jpeg' ? 'jpeg' : (step.imgExt || 'png')
-          });
-          ws.addImage(imgId, {
-            tl: { col: 4.05, row: rowIdx - 1 + 0.08 },
-            ext: { width: step.dispW, height: step.dispH },
-            editAs: 'oneCell'
-          });
-        }
+      if(currentMode==='flow'){
+        const flowDataUrl = flowCanvas.toDataURL('image/png');
+        const fit = fitSize(flowCanvas.width, flowCanvas.height, 700, 1000);
+        ws.mergeCells(r,1,r,6);
+        const flowCell = ws.getCell(r,1);
+        flowCell.alignment = { horizontal:'center', vertical:'middle' };
+        for(let colI=1; colI<=6; colI++) styleBorder(ws.getCell(r,colI), 'FFC7D1DE');
+        ws.getRow(r).height = fit.h * 0.78 + 16;
+        const flowImgId = wb.addImage({ base64: flowDataUrl.split(',')[1], extension:'png' });
+        ws.addImage(flowImgId, {
+          tl: { col: 0.15, row: (r-1) + 0.08 },
+          ext: { width: fit.w, height: fit.h },
+          editAs: 'oneCell'
+        });
         r++;
-      });
+      } else {
+        // table header
+        const headers = ['ลำดับ','รายละเอียด / คำอธิบาย','รูปภาพประกอบ'];
+        ws.getCell(r,1).value = headers[0];
+        ws.mergeCells(r,2,r,4);
+        ws.getCell(r,2).value = headers[1];
+        ws.mergeCells(r,5,r,6);
+        ws.getCell(r,5).value = headers[2];
+        [1,2,5].forEach(colI=>{
+          const cell = ws.getCell(r,colI);
+          cell.font = { bold:true, color:{argb:'FFFFFFFF'} };
+          cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:ACCENT} };
+          cell.alignment = { horizontal:'center', vertical:'middle' };
+        });
+        for(let colI=1; colI<=6; colI++) styleBorder(ws.getCell(r,colI), 'FFB9C6D9');
+        ws.getRow(r).height = 22;
+        r++;
+
+        steps.forEach((step, idx)=>{
+          const rowIdx = r;
+          const descLines = (step.desc || '-').split('\n').length;
+          let rowHeightPt = Math.max(50, descLines*16 + 20);
+          if(step.imgDataUrl){
+            const imgHpt = step.dispH * 0.78 + 16;
+            rowHeightPt = Math.max(rowHeightPt, imgHpt);
+          }
+
+          const noCell = ws.getCell(rowIdx,1);
+          noCell.value = idx+1;
+          noCell.alignment = { horizontal:'center', vertical:'middle' };
+          noCell.font = { bold:true, color:{argb:'FF1E3A5F'} };
+
+          ws.mergeCells(rowIdx,2,rowIdx,4);
+          const descCell = ws.getCell(rowIdx,2);
+          descCell.value = step.desc || '-';
+          descCell.alignment = { horizontal:'left', vertical:'top', wrapText:true, indent:1 };
+
+          ws.mergeCells(rowIdx,5,rowIdx,6);
+          const imgCellAnchor = ws.getCell(rowIdx,5);
+          imgCellAnchor.value = step.imgDataUrl ? '' : '-';
+          imgCellAnchor.alignment = { horizontal:'center', vertical:'middle' };
+
+          for(let colI=1; colI<=6; colI++){
+            styleBorder(ws.getCell(rowIdx,colI));
+            if(idx % 2 === 1){
+              ws.getCell(rowIdx,colI).fill = { type:'pattern', pattern:'solid', fgColor:{argb:ZEBRA} };
+            }
+          }
+
+          ws.getRow(rowIdx).height = rowHeightPt;
+
+          if(step.imgDataUrl){
+            const imgId = wb.addImage({
+              base64: step.imgDataUrl.split(',')[1],
+              extension: step.imgExt === 'jpeg' ? 'jpeg' : (step.imgExt || 'png')
+            });
+            ws.addImage(imgId, {
+              tl: { col: 4.05, row: rowIdx - 1 + 0.08 },
+              ext: { width: step.dispW, height: step.dispH },
+              editAs: 'oneCell'
+            });
+          }
+          r++;
+        });
+      }
 
       const buffer = await wb.xlsx.writeBuffer();
       const blob = new Blob([buffer], { type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
       const fnameBase = sanitizeFilename(title) + (docNo ? '_'+sanitizeFilename(docNo) : '');
       const fileName = fnameBase + '.xlsx';
+      setStatus('', '');
+      return { blob, fileName };
+    }
+  }
 
-      // Mobile in-app browsers (LINE, Facebook, Instagram, Messenger) often block
-      // the classic <a download> + blob-URL trick silently. The Web Share API
-      // (sharing an actual File) routes through the OS share sheet instead, which
-      // works inside most of those in-app browsers. Try it first when available,
-      // and fall back to the normal download link otherwise.
-      const shareFile = new File([blob], fileName, { type: blob.type });
-      let sharedOk = false;
-      if(navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] })){
-        try{
-          await navigator.share({ files: [shareFile], title: fileName });
-          sharedOk = true;
-          setStatus('ส่งไฟล์ Excel เรียบร้อยแล้ว ✓ (เลือก "บันทึกไฟล์" จากเมนูแชร์เพื่อเก็บไว้)', 'ok');
-        }catch(shareErr){
-          if(shareErr && shareErr.name === 'AbortError'){
-            // User closed the share sheet without picking anything — not an error.
-            sharedOk = true;
-            setStatus('', '');
-          }
-          // Any other share failure: fall through to the normal download below.
-        }
-      }
+  function triggerFileDownload(blob, fileName){
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  }
 
-      if(!sharedOk){
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(()=>URL.revokeObjectURL(url), 4000);
+  const btnShare = document.getElementById('btn-share');
+  const btnDownload = document.getElementById('btn-download');
+  const btnEmail = document.getElementById('btn-email');
 
-        if(isInAppBrowser()){
-          setStatus('กดดาวน์โหลดแล้ว ถ้าไม่มีไฟล์ขึ้นมา ให้แตะ "···" มุมขวาบนแล้วเลือก "เปิดใน Chrome/Safari" ก่อนลองใหม่อีกครั้ง', 'error');
-        } else {
-          setStatus('ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว ✓', 'ok');
-        }
-      }
+  async function runExportAction(activeBtn, workFn){
+    const allBtns = [btnShare, btnDownload, btnEmail];
+    allBtns.forEach(b=>b.disabled = true);
+    const originalHtml = activeBtn.innerHTML;
+    activeBtn.innerHTML = '<span class="spinner"></span> กำลังสร้างไฟล์...';
+    try{
+      await workFn();
     }catch(err){
       console.error(err);
       setStatus('เกิดข้อผิดพลาดในการสร้างไฟล์: ' + (err && err.message ? err.message : err), 'error');
     }finally{
-      exportBtn.disabled = false;
-      exportBtn.innerHTML = originalHtml;
+      allBtns.forEach(b=>b.disabled = false);
+      activeBtn.innerHTML = originalHtml;
     }
   }
 
-  document.getElementById('btn-export').onclick = exportExcel;
+  // Mobile in-app browsers (LINE, Facebook, Instagram, Messenger) often block
+  // the classic <a download> + blob-URL trick silently. The Web Share API
+  // (sharing an actual File) routes through the OS share sheet instead, which
+  // works inside most of those in-app browsers and lets the person pick LINE,
+  // an email app, or "save file" directly from the system share menu.
+
+  async function doShare(){
+    const result = await buildWorkbookBlob();
+    if(!result) return;
+    const { blob, fileName } = result;
+    const shareFile = new File([blob], fileName, { type: blob.type });
+    if(navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] })){
+      try{
+        await navigator.share({ files: [shareFile], title: fileName });
+        setStatus('ส่งไฟล์ Excel เรียบร้อยแล้ว ✓ (เลือกแอปที่ต้องการ เช่น LINE หรืออีเมล)', 'ok');
+      }catch(err){
+        if(err && err.name === 'AbortError'){ setStatus('', ''); }
+        else { setStatus('ไม่สามารถแชร์ไฟล์ได้ กรุณาใช้ปุ่ม "ดาวน์โหลด" แทน', 'error'); }
+      }
+    } else {
+      setStatus('อุปกรณ์/เบราว์เซอร์นี้ไม่รองรับปุ่มแชร์ กรุณาใช้ปุ่ม "ดาวน์โหลด" แทน', 'error');
+    }
+  }
+
+  async function doDownload(){
+    const result = await buildWorkbookBlob();
+    if(!result) return;
+    const { blob, fileName } = result;
+    triggerFileDownload(blob, fileName);
+    if(isInAppBrowser()){
+      setStatus('กดดาวน์โหลดแล้ว ถ้าไม่มีไฟล์ขึ้นมา ให้แตะ "···" มุมขวาบนแล้วเลือก "เปิดใน Chrome/Safari" หรือลองปุ่ม "แชร์ไฟล์" แทน', 'error');
+    } else {
+      setStatus('ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว ✓', 'ok');
+    }
+  }
+
+  async function doEmail(){
+    const result = await buildWorkbookBlob();
+    if(!result) return;
+    const { blob, fileName } = result;
+    const shareFile = new File([blob], fileName, { type: blob.type });
+    if(navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] })){
+      try{
+        await navigator.share({ files: [shareFile], title: fileName });
+        setStatus('เปิดเมนูแชร์แล้ว เลือกแอปอีเมล (Gmail/Mail) เพื่อส่งไฟล์แนบ ✓', 'ok');
+        return;
+      }catch(err){
+        if(err && err.name === 'AbortError'){ setStatus('', ''); return; }
+        // Any other share failure: fall through to the mailto fallback below.
+      }
+    }
+    // Browsers can't attach a file via mailto:, so download the file and open
+    // the user's email app with the subject/body ready, and ask them to attach
+    // the just-downloaded file manually.
+    triggerFileDownload(blob, fileName);
+    const subject = encodeURIComponent('OPL: ' + fileName.replace(/\.xlsx$/i,''));
+    const body = encodeURIComponent('ไฟล์ดาวน์โหลดไว้ให้แล้วในชื่อ "'+fileName+'" กรุณาแนบไฟล์นี้ก่อนส่งอีเมล');
+    window.location.href = 'mailto:?subject='+subject+'&body='+body;
+    setStatus('ดาวน์โหลดไฟล์ไว้ให้แล้ว กรุณาแนบไฟล์ "'+fileName+'" ในอีเมลที่เปิดขึ้นด้วยตนเอง', 'ok');
+  }
+
+  btnShare.onclick = ()=>runExportAction(btnShare, doShare);
+  btnDownload.onclick = ()=>runExportAction(btnDownload, doDownload);
+  btnEmail.onclick = ()=>runExportAction(btnEmail, doEmail);
 
   // init
   if(isInAppBrowser()){
