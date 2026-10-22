@@ -911,7 +911,10 @@
   }
 
   function positionFabForFlowBox(b){
-    placeFlowFab(b.x + b.w/2, b.y);
+    // yRef (b.y, the box's TOP) anchors the normal above-box placement;
+    // yRefFlip (b.y+b.h, the box's BOTTOM) anchors it when flipped below,
+    // so the toolbar never lands on top of the box itself either way.
+    placeFlowFab(b.x + b.w/2, b.y, b.y + b.h);
   }
 
   // Positions the floating fab toolbar relative to a point in the Flow's
@@ -919,11 +922,16 @@
   // and/or nudges it sideways so it never gets clipped by
   // .flow-canvas-wrap's overflow:hidden — this matters most right after
   // adding a box, since new boxes default to sitting near the top-left.
-  function placeFlowFab(xRef, yRef){
-    const pos = flowRefToWrapCss(xRef, yRef);
+  // yRefFlip is the anchor to use when flipped below (defaults to yRef for
+  // callers with no separate top/bottom, like an arrow's midpoint).
+  function placeFlowFab(xRef, yRef, yRefFlip){
+    if(yRefFlip === undefined) yRefFlip = yRef;
+    let pos = flowRefToWrapCss(xRef, yRef);
+    const flip = pos.y < 60;
+    if(flip) pos = flowRefToWrapCss(xRef, yRefFlip);
     flowFab.style.left = pos.x + 'px';
     flowFab.style.top = pos.y + 'px';
-    flowFab.classList.toggle('flip-down', pos.y < 60);
+    flowFab.classList.toggle('flip-down', flip);
     const wrapRect = flowWrap.getBoundingClientRect();
     const fabRect = flowFab.getBoundingClientRect();
     const margin = 4;
