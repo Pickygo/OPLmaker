@@ -239,6 +239,14 @@
     content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
     border:6px solid transparent;border-top-color:var(--navy-dark);
   }
+  /* When the anchored box sits too close to the canvas's top edge, the
+     toolbar (which normally floats above the box) would be clipped by
+     .flow-canvas-wrap's overflow:hidden. .flip-down flips it to float
+     below the box instead, with the pointer triangle flipped to match. */
+  .flow-fab-toolbar.flip-down{ transform:translate(-50%, 10px); }
+  .flow-fab-toolbar.flip-down::after{
+    top:auto; bottom:100%; border-top-color:transparent; border-bottom-color:var(--navy-dark);
+  }
 
   .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
   button.secondary.small{padding:10px 14px;font-size:0.85rem;min-height:44px;}
@@ -891,21 +899,38 @@
     }
   }
 
-  function hideFlowFab(){ flowFab.hidden = true; flowFab.innerHTML = ''; }
+  function hideFlowFab(){ flowFab.hidden = true; flowFab.innerHTML = ''; flowFab.classList.remove('flip-down'); }
 
   function showFabForFlowBox(b){
     flowFab.innerHTML =
       '<button type="button" data-act="edit" title="แก้ข้อความ">✏️</button>' +
       '<button type="button" data-act="img" title="ใส่รูป">🖼️</button>' +
       '<button type="button" class="del" data-act="del" title="ลบกล่อง">🗑</button>';
-    positionFabForFlowBox(b);
     flowFab.hidden = false;
+    positionFabForFlowBox(b);
   }
 
   function positionFabForFlowBox(b){
-    const pos = flowRefToWrapCss(b.x + b.w/2, b.y);
+    placeFlowFab(b.x + b.w/2, b.y);
+  }
+
+  // Positions the floating fab toolbar relative to a point in the Flow's
+  // fixed logical coordinate space, then flips it below (instead of above)
+  // and/or nudges it sideways so it never gets clipped by
+  // .flow-canvas-wrap's overflow:hidden — this matters most right after
+  // adding a box, since new boxes default to sitting near the top-left.
+  function placeFlowFab(xRef, yRef){
+    const pos = flowRefToWrapCss(xRef, yRef);
     flowFab.style.left = pos.x + 'px';
     flowFab.style.top = pos.y + 'px';
+    flowFab.classList.toggle('flip-down', pos.y < 60);
+    const wrapRect = flowWrap.getBoundingClientRect();
+    const fabRect = flowFab.getBoundingClientRect();
+    const margin = 4;
+    let dx = 0;
+    if(fabRect.left < wrapRect.left + margin) dx = (wrapRect.left + margin) - fabRect.left;
+    else if(fabRect.right > wrapRect.right - margin) dx = (wrapRect.right - margin) - fabRect.right;
+    if(dx) flowFab.style.left = (pos.x + dx) + 'px';
   }
 
   function showFabForFlowArrow(a){
@@ -914,10 +939,8 @@
     const c1 = flowBoxCenter(fromB), c2 = flowBoxCenter(toB);
     const mid = { x:(c1.x+c2.x)/2, y:(c1.y+c2.y)/2 };
     flowFab.innerHTML = '<button type="button" class="del" data-act="delArrow" title="ลบลูกศร">🗑 ลบลูกศร</button>';
-    const pos = flowRefToWrapCss(mid.x, mid.y);
-    flowFab.style.left = pos.x + 'px';
-    flowFab.style.top = pos.y + 'px';
     flowFab.hidden = false;
+    placeFlowFab(mid.x, mid.y);
   }
 
   flowFab.addEventListener('click', function(e){
