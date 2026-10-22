@@ -212,9 +212,13 @@
   .flow-banner.show{display:flex;}
   .flow-canvas-wrap{
     position:relative;width:100%;border:1px solid var(--border);border-radius:10px;
-    background:#fff;overflow:hidden;touch-action:none;aspect-ratio:700/460;
+    background:#fff;overflow-x:hidden;overflow-y:auto;-webkit-overflow-scrolling:touch;
+    touch-action:pan-y;max-height:min(620px,64vh);
   }
-  #flow-canvas{display:block;touch-action:none;width:100%;height:100%;}
+  /* The canvas's pixel height is set in JS (grows with content, see
+     syncFlowCanvasExtent) rather than via CSS, since .flow-canvas-wrap now
+     scrolls instead of forcing a fixed 700:460 aspect ratio. */
+  #flow-canvas{display:block;touch-action:pan-y;width:100%;}
   .flow-edit-box{
     position:absolute;z-index:5;font-family:inherit;font-size:0.88rem;line-height:1.35;
     padding:6px 8px;border:2px solid var(--accent);border-radius:6px;resize:none;
@@ -611,7 +615,7 @@
     modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b===btn));
     tableModeContent.style.display = currentMode==='table' ? '' : 'none';
     flowModeContent.style.display = currentMode==='flow' ? '' : 'none';
-    if(currentMode==='flow') requestAnimationFrame(function(){ setupFlowDPR(); drawFlow(); });
+    if(currentMode==='flow') requestAnimationFrame(function(){ syncFlowCanvasExtent(); drawFlow(); });
   });
 
   // ---------- Flow canvas (boxes + arrows + per-box images) ----------
@@ -621,7 +625,11 @@
   // when the phone rotates, the on-screen keyboard opens, or the window
   // resizes. setupFlowDPR() maps this fixed space onto whatever the canvas's
   // real backing-store resolution happens to be (crisp on retina phones).
-  const REF_W = 700, REF_H = 460;
+  const REF_W = 700;
+  // REF_H grows as boxes are added further down the Flow (see
+  // syncFlowCanvasExtent), so the canvas never clips or locks content that
+  // extends below the original 460-tall default — the wrap scrolls instead.
+  let REF_H = 460;
   const flowCanvas = document.getElementById('flow-canvas');
   let flowCtx = flowCanvas.getContext('2d');
   const flowWrap = document.getElementById('flow-canvas-wrap');
@@ -649,6 +657,22 @@
     flowCanvas.height = Math.max(1, Math.round(rect.height * dpr));
     flowCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     flowCtx.scale((rect.width || REF_W) / REF_W, (rect.height || REF_H) / REF_H);
+  }
+
+  // Recomputes REF_H from the current boxes' extent (so the canvas grows
+  // to fit content added below the original view, with a margin), sets the
+  // canvas's CSS height to match (keeping the same width-based scale on
+  // both axes, so nothing stretches), then re-syncs the backing-store
+  // resolution. .flow-canvas-wrap scrolls when the result is taller than
+  // its own max-height. Call this whenever a box's position/size changes.
+  function syncFlowCanvasExtent(){
+    let maxY = 0;
+    flowBoxes.forEach(function(b){ maxY = Math.max(maxY, b.y + b.h); });
+    REF_H = Math.max(460, Math.ceil(maxY + 40));
+    const wrapWidth = flowWrap.clientWidth || flowCanvas.getBoundingClientRect().width || REF_W;
+    const scale = wrapWidth / REF_W;
+    flowCanvas.style.height = Math.round(REF_H * scale) + 'px';
+    setupFlowDPR();
   }
 
   function getFlowBox(id){ return flowBoxes.find(function(b){ return b.id === id; }); }
@@ -966,6 +990,7 @@
     flowArrows = flowArrows.filter(function(a){ return a.from !== id && a.to !== id; });
     flowSelectedBoxId = null;
     hideFlowFab();
+    syncFlowCanvasExtent();
     drawFlow();
   }
 
@@ -996,6 +1021,7 @@
       b.text = ta.value.trim();
       autoFitFlowBoxHeight(b);
       closeFlowEditor();
+      syncFlowCanvasExtent();
       if(flowSelectedBoxId === b.id) positionFabForFlowBox(b);
       drawFlow();
     }
@@ -1065,7 +1091,10 @@
     const b = getFlowBox(flowDrag.id);
     if(!b) return;
     b.x = Math.max(0, Math.min(REF_W - b.w, pos.x - flowDrag.offX));
-    b.y = Math.max(0, Math.min(REF_H - b.h, pos.y - flowDrag.offY));
+    // No upper clamp on y: dragging a box further down grows the canvas
+    // (syncFlowCanvasExtent) instead of stopping at a fixed boundary.
+    b.y = Math.max(0, pos.y - flowDrag.offY);
+    syncFlowCanvasExtent();
     positionFabForFlowBox(b);
     drawFlow();
   });
@@ -1091,6 +1120,7 @@
       el.onload = function(){
         b.img = { dataUrl: dataUrl, w: naturalW, h: naturalH, el: el };
         autoFitFlowBoxHeight(b);
+        syncFlowCanvasExtent();
         if(flowSelectedBoxId === b.id) positionFabForFlowBox(b);
         drawFlow();
       };
@@ -1105,6 +1135,7 @@
     flowBoxes.push(b);
     flowSelectedBoxId = b.id;
     flowSelectedArrowId = null;
+    syncFlowCanvasExtent();
     showFabForFlowBox(b);
     drawFlow();
   };
@@ -1128,10 +1159,11 @@
     hideFlowFab();
     btnFlowAddArrow.classList.remove('active-mode');
     flowArrowBanner.classList.remove('show');
+    syncFlowCanvasExtent();
     drawFlow();
   };
 
-  function resizeFlowCanvas(){ setupFlowDPR(); drawFlow(); if(flowSelectedBoxId){ const b=getFlowBox(flowSelectedBoxId); if(b) positionFabForFlowBox(b); } }
+  function resizeFlowCanvas(){ syncFlowCanvasExtent(); drawFlow(); if(flowSelectedBoxId){ const b=getFlowBox(flowSelectedBoxId); if(b) positionFabForFlowBox(b); } }
   window.addEventListener('resize', function(){ if(currentMode==='flow') resizeFlowCanvas(); });
   if(window.ResizeObserver){ new ResizeObserver(function(){ if(currentMode==='flow') resizeFlowCanvas(); }).observe(flowWrap); }
 
@@ -1275,7 +1307,7 @@
     hideFlowFab();
     btnFlowAddArrow.classList.remove('active-mode');
     flowArrowBanner.classList.remove('show');
-    setupFlowDPR();
+    syncFlowCanvasExtent();
     drawFlow();
     currentMode = 'table';
     modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b.dataset.mode==='table'));
@@ -1527,6 +1559,8 @@
       r++;
 
       if(currentMode==='flow'){
+        // 1) A small flattened picture of the whole diagram, so the shape
+        //    and arrows of the flow are still visible at a glance.
         const flowExport = renderFlowForExport();
         const flowDataUrl = flowExport.dataUrl;
         const fit = fitSize(flowExport.width, flowExport.height, 700, 1000);
@@ -1542,6 +1576,82 @@
           editAs: 'oneCell'
         });
         r++;
+
+        // 2) The same boxes again, but as separate rows with their own
+        //    text cell and their own embedded image (same layout as Table
+        //    mode below) — unlike the picture above, these can be edited,
+        //    retyped, or have their image replaced directly in Excel
+        //    afterwards. Boxes are listed in the order they were added.
+        ws.getRow(r).height = 8;
+        r++;
+        ws.mergeCells(r,1,r,6);
+        c = ws.getCell(r,1);
+        c.value = 'รายละเอียดแต่ละขั้นตอน (แก้ไขได้ในไฟล์นี้)';
+        c.font = { bold:true, size:11, color:{argb:'FF1E3A5F'} };
+        ws.getRow(r).height = 20;
+        r++;
+
+        const flowHeaders = ['ลำดับ','รายละเอียด / คำอธิบาย','รูปภาพประกอบ'];
+        ws.getCell(r,1).value = flowHeaders[0];
+        ws.mergeCells(r,2,r,4);
+        ws.getCell(r,2).value = flowHeaders[1];
+        ws.mergeCells(r,5,r,6);
+        ws.getCell(r,5).value = flowHeaders[2];
+        [1,2,5].forEach(colI=>{
+          const cell = ws.getCell(r,colI);
+          cell.font = { bold:true, color:{argb:'FFFFFFFF'} };
+          cell.fill = { type:'pattern', pattern:'solid', fgColor:{argb:ACCENT} };
+          cell.alignment = { horizontal:'center', vertical:'middle' };
+        });
+        for(let colI=1; colI<=6; colI++) styleBorder(ws.getCell(r,colI), 'FFB9C6D9');
+        ws.getRow(r).height = 22;
+        r++;
+
+        flowBoxes.forEach((b, idx)=>{
+          const rowIdx = r;
+          const boxText = b.text || '-';
+          const descLines = boxText.split('\n').length;
+          const imgFit = b.img ? fitSize(b.img.w, b.img.h, 260, 170) : null;
+          let rowHeightPt = Math.max(50, descLines*16 + 20);
+          if(imgFit) rowHeightPt = Math.max(rowHeightPt, imgFit.h * 0.78 + 16);
+
+          const noCell = ws.getCell(rowIdx,1);
+          noCell.value = idx+1;
+          noCell.alignment = { horizontal:'center', vertical:'middle' };
+          noCell.font = { bold:true, color:{argb:'FF1E3A5F'} };
+
+          ws.mergeCells(rowIdx,2,rowIdx,4);
+          const descCell = ws.getCell(rowIdx,2);
+          descCell.value = boxText;
+          descCell.alignment = { horizontal:'left', vertical:'top', wrapText:true, indent:1 };
+
+          ws.mergeCells(rowIdx,5,rowIdx,6);
+          const imgCellAnchor = ws.getCell(rowIdx,5);
+          imgCellAnchor.value = imgFit ? '' : '-';
+          imgCellAnchor.alignment = { horizontal:'center', vertical:'middle' };
+
+          for(let colI=1; colI<=6; colI++){
+            styleBorder(ws.getCell(rowIdx,colI));
+            if(idx % 2 === 1){
+              ws.getCell(rowIdx,colI).fill = { type:'pattern', pattern:'solid', fgColor:{argb:ZEBRA} };
+            }
+          }
+
+          ws.getRow(rowIdx).height = rowHeightPt;
+
+          if(imgFit){
+            const imgId = wb.addImage({
+              base64: b.img.dataUrl.split(',')[1],
+              extension: extFromDataUrl(b.img.dataUrl)
+            });
+            ws.addImage(imgId, {
+              tl: { col: 4.05, row: rowIdx - 1 + 0.08 },
+              ext: { width: imgFit.w, height: imgFit.h },
+              editAs: 'oneCell'
+            });
+          }
+          r++;
+        });
       } else {
         // table header
         const headers = ['ลำดับ','รายละเอียด / คำอธิบาย','รูปภาพประกอบ'];
