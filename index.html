@@ -110,9 +110,9 @@
   }
   .step-actions{display:flex;gap:6px;}
   .icon-btn{
-    border:1px solid var(--border);background:#fff;color:#4b5563;width:30px;height:30px;
+    border:1px solid var(--border);background:#fff;color:#4b5563;width:40px;height:40px;
     border-radius:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    font-size:0.9rem;line-height:1;
+    font-size:1rem;line-height:1;flex:none;
   }
   .icon-btn:hover{background:#f1f4f8;}
   .icon-btn.danger{color:var(--danger);border-color:#f3c9c9;}
@@ -137,7 +137,7 @@
   }
 
   .add-step-btn{
-    width:100%;padding:12px;border:1.5px dashed var(--accent);background:#f2f6ff;
+    width:100%;min-height:46px;padding:12px;border:1.5px dashed var(--accent);background:#f2f6ff;
     color:var(--accent);border-radius:10px;font-weight:600;font-size:0.92rem;cursor:pointer;
     font-family:inherit;
   }
@@ -154,14 +154,15 @@
   .btn-row{display:flex;gap:10px;}
   button.primary{
     background:var(--navy);color:#fff;border:none;padding:12px 22px;border-radius:10px;
-    font-weight:700;font-size:0.95rem;cursor:pointer;font-family:inherit;
-    display:flex;align-items:center;gap:8px;
+    font-weight:700;font-size:0.95rem;cursor:pointer;font-family:inherit;min-height:46px;
+    display:flex;align-items:center;gap:8px;touch-action:manipulation;
   }
   button.primary:hover{background:var(--navy-dark);}
   button.primary:disabled{opacity:0.6;cursor:not-allowed;}
   button.secondary{
     background:#fff;color:#4b5563;border:1px solid var(--border);padding:12px 18px;
     border-radius:10px;font-weight:600;font-size:0.9rem;cursor:pointer;font-family:inherit;
+    min-height:44px;touch-action:manipulation;
   }
   button.secondary:hover{background:#f1f4f8;}
   .spinner{
@@ -194,30 +195,53 @@
 
   .mode-toggle{display:flex;gap:8px;margin-bottom:6px;}
   .mode-pill{
-    flex:1;padding:9px 10px;border:1.5px solid var(--border);border-radius:9px;
+    flex:1;min-height:46px;padding:9px 10px;border:1.5px solid var(--border);border-radius:9px;
     background:#fbfcfe;font-weight:600;font-size:0.85rem;cursor:pointer;
-    font-family:inherit;color:var(--text);
+    font-family:inherit;color:var(--text);touch-action:manipulation;
   }
   .mode-pill.active{border-color:var(--accent);background:#eef4ff;color:var(--navy-dark);}
   .mode-pill:hover{border-color:var(--accent);}
 
   .flow-toolbar{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0;}
-  .flow-toolbar button{font-size:0.84rem;padding:9px 12px;}
+  .flow-toolbar button{font-size:0.84rem;padding:9px 12px;min-height:44px;touch-action:manipulation;}
   .flow-toolbar button.active-mode{border-color:var(--accent);background:#eef4ff;color:var(--navy-dark);}
-  .flow-canvas-wrap{
-    position:relative;border:1px solid var(--border);border-radius:10px;
-    background:#fff;overflow:auto;touch-action:none;
+  .flow-banner{
+    display:none;align-items:center;gap:8px;font-size:0.84rem;font-weight:600;
+    background:var(--accent);color:#fff;border-radius:9px;padding:10px 12px;margin-bottom:10px;
   }
-  #flow-canvas{display:block;touch-action:none;}
+  .flow-banner.show{display:flex;}
+  .flow-canvas-wrap{
+    position:relative;width:100%;border:1px solid var(--border);border-radius:10px;
+    background:#fff;overflow:hidden;touch-action:none;aspect-ratio:700/460;
+  }
+  #flow-canvas{display:block;touch-action:none;width:100%;height:100%;}
   .flow-edit-box{
-    position:absolute;z-index:5;font-family:inherit;font-size:0.82rem;line-height:1.3;
-    padding:5px 6px;border:2px solid var(--accent);border-radius:6px;resize:none;
+    position:absolute;z-index:5;font-family:inherit;font-size:0.88rem;line-height:1.35;
+    padding:6px 8px;border:2px solid var(--accent);border-radius:6px;resize:none;
     background:#fff;color:var(--text);
   }
   .flow-edit-box:focus{outline:none;}
 
+  .flow-fab-toolbar{
+    position:absolute;display:flex;gap:4px;background:var(--navy-dark);
+    border-radius:10px;padding:4px;box-shadow:0 4px 14px rgba(0,0,0,0.28);
+    transform:translate(-50%, calc(-100% - 10px));pointer-events:auto;z-index:6;
+    white-space:nowrap;
+  }
+  .flow-fab-toolbar button{
+    min-width:44px;min-height:44px;border:none;border-radius:7px;background:transparent;
+    color:#fff;font-size:1.15rem;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    touch-action:manipulation;
+  }
+  .flow-fab-toolbar button:hover{background:rgba(255,255,255,0.15);}
+  .flow-fab-toolbar button.del:hover{background:var(--danger);}
+  .flow-fab-toolbar::after{
+    content:"";position:absolute;left:50%;top:100%;transform:translateX(-50%);
+    border:6px solid transparent;border-top-color:var(--navy-dark);
+  }
+
   .btn-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-  button.secondary.small{padding:10px 14px;font-size:0.85rem;}
+  button.secondary.small{padding:10px 14px;font-size:0.85rem;min-height:44px;}
 </style>
 </head>
 <body>
@@ -323,15 +347,17 @@
 
     <div id="flow-mode-content" style="display:none;">
       <div class="flow-toolbar">
-        <button type="button" class="secondary" id="btn-flow-addbox">+ เพิ่มกล่อง</button>
-        <button type="button" class="secondary" id="btn-flow-addarrow">➚ เพิ่มลูกศร</button>
-        <button type="button" class="secondary" id="btn-flow-delete">🗑 ลบที่เลือก</button>
-        <button type="button" class="secondary" id="btn-flow-clear">ล้าง Flow ทั้งหมด</button>
+        <button type="button" class="secondary" id="btn-flow-addbox">➕ เพิ่มกล่อง</button>
+        <button type="button" class="secondary" id="btn-flow-addarrow">↗️ เพิ่มลูกศร</button>
+        <button type="button" class="secondary" id="btn-flow-clear">🧹 ล้าง Flow ทั้งหมด</button>
       </div>
+      <div class="flow-banner" id="flow-arrow-banner">👉 แตะกล่องต้นทาง แล้วแตะกล่องปลายทาง</div>
       <div class="flow-canvas-wrap" id="flow-canvas-wrap">
-        <canvas id="flow-canvas" width="680" height="408"></canvas>
+        <canvas id="flow-canvas"></canvas>
+        <div class="flow-fab-toolbar" id="flow-fab" hidden></div>
       </div>
-      <p class="hint">กด "+ เพิ่มกล่อง" เพื่อวางกล่องใหม่ แล้วลาก/แตะค้างเพื่อย้ายตำแหน่ง แตะสองครั้งที่กล่องเพื่อแก้ไขข้อความในกล่อง กด "➚ เพิ่มลูกศร" แล้วแตะกล่องต้นทางและกล่องปลายทางตามลำดับเพื่อวาดลูกศรเชื่อม แตะกล่องหรือลูกศรเพื่อเลือกก่อนกด "ลบที่เลือก"</p>
+      <p class="hint">แตะกล่องเพื่อเลือก แล้วใช้เมนูลอยที่ขึ้นมา: ✏️ แก้ข้อความ · 🖼️ ใส่รูป · 🗑 ลบกล่อง — ลากกล่องเพื่อย้ายตำแหน่ง กด "↗️ เพิ่มลูกศร" แล้วแตะกล่องต้นทางและปลายทางตามลำดับเพื่อวาดลูกศรเชื่อม แตะลูกศรเพื่อเลือกแล้วลบได้เช่นกัน</p>
+      <input type="file" id="flow-img-input" accept="image/*" style="display:none;">
     </div>
   </section>
 
@@ -458,15 +484,34 @@
     statusMsg.className = 'status-msg' + (type ? ' '+type : '');
   }
 
-  function fileToImage(file){
+  // Browsers auto-rotate an <img> on screen according to the file's EXIF
+  // Orientation tag, but Excel (and the raw bytes we embed) ignore that tag
+  // completely — so a portrait phone photo could come out sideways/upside
+  // down in the exported file even though it looked correct in the picker.
+  // Fix: always draw the loaded image onto a canvas first. Canvas drawImage()
+  // bakes in the browser's already-corrected orientation into the pixel
+  // data, so the bytes we export always match what was seen on screen.
+  function fileToImage(file, maxW, maxH){
+    maxW = maxW || 1600; maxH = maxH || 1600;
     return new Promise((resolve, reject)=>{
       const reader = new FileReader();
       reader.onload = function(e){
-        const dataUrl = e.target.result;
         const img = new Image();
-        img.onload = function(){ resolve({ dataUrl, naturalW: img.naturalWidth, naturalH: img.naturalHeight }); };
-        img.onerror = reject;
-        img.src = dataUrl;
+        img.onload = function(){
+          const nw = img.naturalWidth, nh = img.naturalHeight;
+          const scale = Math.min(1, maxW/nw, maxH/nh);
+          const w = Math.max(1, Math.round(nw*scale));
+          const h = Math.max(1, Math.round(nh*scale));
+          const c = document.createElement('canvas');
+          c.width = w; c.height = h;
+          const cx = c.getContext('2d');
+          cx.fillStyle = '#ffffff';
+          cx.fillRect(0,0,w,h);
+          cx.drawImage(img, 0, 0, w, h);
+          resolve({ dataUrl: c.toDataURL('image/jpeg', 0.9), naturalW: w, naturalH: h });
+        };
+        img.onerror = function(){ reject(new Error('decode failed')); };
+        img.src = e.target.result;
       };
       reader.onerror = reject;
       reader.readAsDataURL(file);
@@ -558,78 +603,136 @@
     modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b===btn));
     tableModeContent.style.display = currentMode==='table' ? '' : 'none';
     flowModeContent.style.display = currentMode==='flow' ? '' : 'none';
-    if(currentMode==='flow') requestAnimationFrame(resizeFlowCanvas);
+    if(currentMode==='flow') requestAnimationFrame(function(){ setupFlowDPR(); drawFlow(); });
   });
 
-  // ---------- Flow canvas (basic boxes + arrows) ----------
+  // ---------- Flow canvas (boxes + arrows + per-box images) ----------
+  // Fixed logical coordinate space (REF_W x REF_H). Box/arrow positions are
+  // always stored in this space, independent of the canvas's on-screen CSS
+  // size or the device's pixel ratio — so nothing drifts or gets rescaled
+  // when the phone rotates, the on-screen keyboard opens, or the window
+  // resizes. setupFlowDPR() maps this fixed space onto whatever the canvas's
+  // real backing-store resolution happens to be (crisp on retina phones).
+  const REF_W = 700, REF_H = 460;
   const flowCanvas = document.getElementById('flow-canvas');
-  const flowCtx = flowCanvas.getContext('2d');
+  let flowCtx = flowCanvas.getContext('2d');
   const flowWrap = document.getElementById('flow-canvas-wrap');
-  let flowBoxes = []; // {id,x,y,w,h,text}
+  const flowFab = document.getElementById('flow-fab');
+  const flowArrowBanner = document.getElementById('flow-arrow-banner');
+  const flowImgInput = document.getElementById('flow-img-input');
+
+  let flowBoxes = []; // {id,x,y,w,h,text,img:{dataUrl,w,h,el}|null}
   let flowArrows = []; // {id,from,to}
   let flowNextId = 1;
   let flowSelectedBoxId = null;
   let flowSelectedArrowId = null;
   let flowArrowMode = false;
   let flowArrowSourceId = null;
+  let flowPendingImageBoxId = null;
   let flowDrag = null; // {id, offX, offY}
+  let flowEditingBox = null; // textarea element ref
 
   function flowUid(prefix){ return prefix + (flowNextId++); }
 
-  function boxCenter(b){ return { x: b.x + b.w/2, y: b.y + b.h/2 }; }
+  function setupFlowDPR(){
+    const dpr = window.devicePixelRatio || 1;
+    const rect = flowCanvas.getBoundingClientRect();
+    flowCanvas.width = Math.max(1, Math.round(rect.width * dpr));
+    flowCanvas.height = Math.max(1, Math.round(rect.height * dpr));
+    flowCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    flowCtx.scale((rect.width || REF_W) / REF_W, (rect.height || REF_H) / REF_H);
+  }
 
-  function edgePoint(b, tx, ty){
+  function getFlowBox(id){ return flowBoxes.find(function(b){ return b.id === id; }); }
+
+  function flowBoxCenter(b){ return { x: b.x + b.w/2, y: b.y + b.h/2 }; }
+
+  function flowEdgePoint(b, tx, ty){
     const cx = b.x + b.w/2, cy = b.y + b.h/2;
     const dx = tx - cx, dy = ty - cy;
-    if(dx===0 && dy===0) return { x:cx, y:cy };
-    const halfW = b.w/2, halfH = b.h/2;
-    const scaleX = dx !== 0 ? halfW / Math.abs(dx) : Infinity;
-    const scaleY = dy !== 0 ? halfH / Math.abs(dy) : Infinity;
-    const scale = Math.min(scaleX, scaleY);
+    if(dx === 0 && dy === 0) return { x: cx, y: cy };
+    const hw = b.w/2, hh = b.h/2;
+    const scale = Math.min(hw/Math.abs(dx || 1e-6), hh/Math.abs(dy || 1e-6));
     return { x: cx + dx*scale, y: cy + dy*scale };
   }
 
-  function roundRect(ctx,x,y,w,h,r){
-    ctx.beginPath();
-    ctx.moveTo(x+r,y);
-    ctx.arcTo(x+w,y,x+w,y+h,r);
-    ctx.arcTo(x+w,y+h,x,y+h,r);
-    ctx.arcTo(x,y+h,x,y,r);
-    ctx.arcTo(x,y,x+w,y,r);
-    ctx.closePath();
+  function flowRoundRect(x,y,w,h,r){
+    flowCtx.beginPath();
+    flowCtx.moveTo(x+r,y);
+    flowCtx.arcTo(x+w,y,x+w,y+h,r);
+    flowCtx.arcTo(x+w,y+h,x,y+h,r);
+    flowCtx.arcTo(x,y+h,x,y,r);
+    flowCtx.arcTo(x,y,x+w,y,r);
+    flowCtx.closePath();
   }
 
-  function wrapFlowText(ctx, text, maxWidth){
-    const words = String(text||'').split(/\s+/).filter(Boolean);
+  // Thai (and similar scripts) usually have no spaces between words, so a
+  // plain whitespace word-wrap never breaks and the whole string overflows
+  // the box. Fall back to breaking at grapheme-cluster boundaries (so a
+  // vowel/tone mark never gets split from its base letter) whenever a
+  // single "word" is wider than the box on its own.
+  const flowGraphemeSegmenter = (typeof Intl !== 'undefined' && Intl.Segmenter)
+    ? new Intl.Segmenter('th', { granularity: 'grapheme' }) : null;
+
+  function flowGraphemes(str){
+    if(flowGraphemeSegmenter){
+      const out = [];
+      for(const s of flowGraphemeSegmenter.segment(str)) out.push(s.segment);
+      return out;
+    }
+    return Array.from(str);
+  }
+
+  function wrapFlowText(text, maxWidth){
+    const raw = (text || '').trim();
+    if(!raw) return [];
+    const tokens = raw.split(/(\s+)/).filter(function(t){ return t !== ''; });
     const lines = [];
     let line = '';
-    words.forEach(w=>{
-      const test = line ? line+' '+w : w;
-      if(ctx.measureText(test).width > maxWidth && line){
-        lines.push(line); line = w;
+
+    function pushGrapheme(ch){
+      const test = line + ch;
+      if(line === '' || flowCtx.measureText(test).width <= maxWidth){ line = test; }
+      else { lines.push(line); line = ch; }
+    }
+
+    tokens.forEach(function(tok){
+      if(/^\s+$/.test(tok)){
+        if(line !== ''){
+          const test = line + ' ';
+          if(flowCtx.measureText(test).width <= maxWidth){ line = test; }
+          else { lines.push(line); line = ''; }
+        }
+        return;
+      }
+      const tokWidth = flowCtx.measureText(tok).width;
+      if(tokWidth <= maxWidth){
+        const test = line === '' ? tok : line + tok;
+        if(flowCtx.measureText(test).width <= maxWidth){ line = test; }
+        else { lines.push(line); line = tok; }
       } else {
-        line = test;
+        flowGraphemes(tok).forEach(pushGrapheme);
       }
     });
-    if(line) lines.push(line);
-    return lines.length ? lines : [''];
+    if(line !== '') lines.push(line);
+    return lines;
   }
 
-  function drawArrowHead(ctx, x, y, angle, size, color){
-    ctx.save();
-    ctx.translate(x,y);
-    ctx.rotate(angle);
-    ctx.beginPath();
-    ctx.moveTo(0,0);
-    ctx.lineTo(-size, size*0.55);
-    ctx.lineTo(-size, -size*0.55);
-    ctx.closePath();
-    ctx.fillStyle = color;
-    ctx.fill();
-    ctx.restore();
+  function drawFlowArrowHead(x,y,angle,color){
+    flowCtx.save();
+    flowCtx.translate(x,y);
+    flowCtx.rotate(angle);
+    flowCtx.beginPath();
+    flowCtx.moveTo(0,0);
+    flowCtx.lineTo(-10, 10*0.55);
+    flowCtx.lineTo(-10, -10*0.55);
+    flowCtx.closePath();
+    flowCtx.fillStyle = color;
+    flowCtx.fill();
+    flowCtx.restore();
   }
 
-  function distToSegment(px,py,x1,y1,x2,y2){
+  function flowDistToSegment(px,py,x1,y1,x2,y2){
     const dx=x2-x1, dy=y2-y1;
     const lenSq = dx*dx+dy*dy;
     let t = lenSq ? ((px-x1)*dx+(py-y1)*dy)/lenSq : 0;
@@ -647,35 +750,41 @@
   }
 
   function hitFlowArrow(x,y){
-    const THRESH = 8;
+    const THRESH = 10;
     for(let i=flowArrows.length-1;i>=0;i--){
       const arrow = flowArrows[i];
-      const a = flowBoxes.find(b=>b.id===arrow.from);
-      const b = flowBoxes.find(b=>b.id===arrow.to);
+      const a = getFlowBox(arrow.from), b = getFlowBox(arrow.to);
       if(!a||!b) continue;
-      const cA=boxCenter(a), cB=boxCenter(b);
-      const p1=edgePoint(a,cB.x,cB.y), p2=edgePoint(b,cA.x,cA.y);
-      if(distToSegment(x,y,p1.x,p1.y,p2.x,p2.y) <= THRESH) return arrow;
+      const cA=flowBoxCenter(a), cB=flowBoxCenter(b);
+      const p1=flowEdgePoint(a,cB.x,cB.y), p2=flowEdgePoint(b,cA.x,cA.y);
+      if(flowDistToSegment(x,y,p1.x,p1.y,p2.x,p2.y) <= THRESH) return arrow;
     }
     return null;
   }
 
+  // Flow drawing always uses these fixed, document-style colors (never CSS
+  // theme variables) so the image embedded into Excel always looks the same
+  // regardless of the viewer's device light/dark setting.
+  const FLOW_COLOR = {
+    bg:'#ffffff', text:'#1e3a5f', muted:'#6b7280', border:'#9db3d6',
+    accent:'#2f6fed', danger:'#d64545', boxFill:'#eef4ff', boxFillSrc:'#fff6e0',
+    arrowSrcBorder:'#f0c14b'
+  };
+
   function drawFlow(){
     const ctx = flowCtx;
-    const W = flowCanvas.width, H = flowCanvas.height;
-    ctx.clearRect(0,0,W,H);
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0,0,W,H);
+    ctx.clearRect(0,0,REF_W,REF_H);
+    ctx.fillStyle = FLOW_COLOR.bg;
+    ctx.fillRect(0,0,REF_W,REF_H);
 
-    flowArrows.forEach(arrow=>{
-      const a = flowBoxes.find(b=>b.id===arrow.from);
-      const b = flowBoxes.find(b=>b.id===arrow.to);
+    flowArrows.forEach(function(arrow){
+      const a = getFlowBox(arrow.from), b = getFlowBox(arrow.to);
       if(!a || !b) return;
-      const cA = boxCenter(a), cB = boxCenter(b);
-      const p1 = edgePoint(a, cB.x, cB.y);
-      const p2 = edgePoint(b, cA.x, cA.y);
+      const cA = flowBoxCenter(a), cB = flowBoxCenter(b);
+      const p1 = flowEdgePoint(a, cB.x, cB.y);
+      const p2 = flowEdgePoint(b, cA.x, cA.y);
       const selected = arrow.id===flowSelectedArrowId;
-      const color = selected ? '#d64545' : '#2f6fed';
+      const color = selected ? FLOW_COLOR.danger : FLOW_COLOR.accent;
       ctx.strokeStyle = color;
       ctx.lineWidth = selected ? 3 : 2.2;
       ctx.beginPath();
@@ -683,174 +792,299 @@
       ctx.lineTo(p2.x,p2.y);
       ctx.stroke();
       const angle = Math.atan2(p2.y-p1.y, p2.x-p1.x);
-      drawArrowHead(ctx, p2.x, p2.y, angle, 9, color);
+      drawFlowArrowHead(p2.x, p2.y, angle, color);
     });
 
-    flowBoxes.forEach(b=>{
+    flowBoxes.forEach(function(b){
       const selected = b.id===flowSelectedBoxId;
-      const isArrowSrc = b.id===flowArrowSourceId;
-      ctx.fillStyle = isArrowSrc ? '#fff6e0' : '#eef4ff';
-      ctx.strokeStyle = selected ? '#2f6fed' : (isArrowSrc ? '#f0c14b' : '#9db3d6');
-      ctx.lineWidth = (selected || isArrowSrc) ? 2.5 : 1.5;
-      roundRect(ctx, b.x, b.y, b.w, b.h, 10);
+      const isArrowSrc = flowArrowMode && b.id===flowArrowSourceId;
+      flowRoundRect(b.x, b.y, b.w, b.h, 12);
+      ctx.fillStyle = isArrowSrc ? FLOW_COLOR.boxFillSrc : FLOW_COLOR.boxFill;
       ctx.fill();
+      ctx.lineWidth = (selected || isArrowSrc) ? 3 : 1.5;
+      ctx.strokeStyle = selected ? FLOW_COLOR.accent : (isArrowSrc ? FLOW_COLOR.arrowSrcBorder : FLOW_COLOR.border);
       ctx.stroke();
 
-      ctx.fillStyle = '#1e3a5f';
+      let textTop = b.y + 10;
+      let textH = b.h - 20;
+
+      if(b.img && b.img.el){
+        const imgH = Math.min(b.h*0.58, b.h - 28);
+        const imgW = b.w - 16;
+        const ratio = Math.min(imgW/b.img.w, imgH/b.img.h);
+        const dw = b.img.w*ratio, dh = b.img.h*ratio;
+        const dx = b.x + (b.w-dw)/2, dy = b.y + 8;
+        ctx.save();
+        flowRoundRect(b.x+8, b.y+8, b.w-16, imgH, 6);
+        ctx.clip();
+        ctx.drawImage(b.img.el, dx, dy, dw, dh);
+        ctx.restore();
+        textTop = b.y + 8 + imgH + 6;
+        textH = b.h - (8 + imgH + 6) - 8;
+      }
+
+      ctx.save();
+      flowRoundRect(b.x + 2, textTop - 2, b.w - 4, Math.max(0, textH + 2), 6);
+      ctx.clip();
+
+      ctx.fillStyle = FLOW_COLOR.text;
       ctx.font = '600 13px Sarabun, sans-serif';
       ctx.textBaseline = 'top';
-      const lines = wrapFlowText(ctx, b.text, b.w-16).slice(0,5);
+      const maxTextW = b.w - 20;
+      const lines = wrapFlowText(b.text || 'แตะเพื่อใส่ข้อความ', maxTextW);
       const lineH = 16;
-      const startY = b.y + Math.max(8, (b.h - lines.length*lineH)/2);
-      lines.forEach((ln,i)=>{ ctx.fillText(ln, b.x+8, startY + i*lineH); });
+      const maxLines = Math.max(1, Math.floor(textH / lineH));
+      const visibleLines = lines.slice(0, maxLines);
+      const truncated = lines.length > maxLines;
+      if(truncated && visibleLines.length){
+        let last = visibleLines[visibleLines.length - 1];
+        while(last.length > 1 && ctx.measureText(last + '…').width > maxTextW){
+          last = last.slice(0, -1);
+        }
+        visibleLines[visibleLines.length - 1] = last + '…';
+      }
+      const totalH = visibleLines.length * lineH;
+      let ly = textTop + Math.max(0, (textH - totalH)/2);
+      if(!b.text){ ctx.fillStyle = FLOW_COLOR.muted; ctx.font = '500 12px Sarabun, sans-serif'; }
+      visibleLines.forEach(function(line){
+        ctx.fillText(line, b.x + b.w/2 - ctx.measureText(line).width/2, ly);
+        ly += lineH;
+      });
+      ctx.restore();
     });
   }
 
-  function addFlowBox(){
-    const id = flowUid('b');
-    const idx = flowBoxes.length;
-    const col = idx % 3, row = Math.floor(idx/3);
-    flowBoxes.push({ id, x: 30+col*210, y: 24+row*120, w:170, h:76, text:'ขั้นตอน '+(idx+1) });
-    flowSelectedBoxId = id;
-    flowSelectedArrowId = null;
+  const FLOW_BOX_MIN_H = 92, FLOW_BOX_MAX_H = 240;
+
+  function autoFitFlowBoxHeight(b){
+    flowCtx.font = '600 13px Sarabun, sans-serif';
+    const lines = wrapFlowText(b.text || '', b.w - 20);
+    const lineH = 16;
+    const textBlockH = Math.max(lineH, lines.length * lineH) + 20;
+    const imgH = b.img ? Math.min(FLOW_BOX_MAX_H * 0.58, FLOW_BOX_MAX_H - 28) : 0;
+    const needed = imgH ? (8 + imgH + 6 + textBlockH) : textBlockH;
+    b.h = Math.max(FLOW_BOX_MIN_H, Math.min(FLOW_BOX_MAX_H, Math.round(needed)));
+  }
+
+  function getFlowPos(evt){
+    const rect = flowCanvas.getBoundingClientRect();
+    const sx = REF_W / rect.width, sy = REF_H / rect.height;
+    return { x: (evt.clientX - rect.left) * sx, y: (evt.clientY - rect.top) * sy };
+  }
+
+  function flowRefToWrapCss(xRef, yRef){
+    const rect = flowCanvas.getBoundingClientRect();
+    const wrapRect = flowWrap.getBoundingClientRect();
+    const sx = rect.width / REF_W, sy = rect.height / REF_H;
+    return { x: (rect.left - wrapRect.left) + xRef*sx, y: (rect.top - wrapRect.top) + yRef*sy };
+  }
+
+  function closeFlowEditor(){
+    // Removing a focused element from the DOM synchronously fires its blur
+    // event (which also calls this function) before removeChild() returns,
+    // so the module-level reference must be cleared BEFORE removing it —
+    // otherwise the re-entrant call tries to remove the same node twice.
+    if(flowEditingBox){
+      const el = flowEditingBox;
+      flowEditingBox = null;
+      if(el.parentNode) el.parentNode.removeChild(el);
+    }
+  }
+
+  function hideFlowFab(){ flowFab.hidden = true; flowFab.innerHTML = ''; }
+
+  function showFabForFlowBox(b){
+    flowFab.innerHTML =
+      '<button type="button" data-act="edit" title="แก้ข้อความ">✏️</button>' +
+      '<button type="button" data-act="img" title="ใส่รูป">🖼️</button>' +
+      '<button type="button" class="del" data-act="del" title="ลบกล่อง">🗑</button>';
+    positionFabForFlowBox(b);
+    flowFab.hidden = false;
+  }
+
+  function positionFabForFlowBox(b){
+    const pos = flowRefToWrapCss(b.x + b.w/2, b.y);
+    flowFab.style.left = pos.x + 'px';
+    flowFab.style.top = pos.y + 'px';
+  }
+
+  function showFabForFlowArrow(a){
+    const fromB = getFlowBox(a.from), toB = getFlowBox(a.to);
+    if(!fromB || !toB) return;
+    const c1 = flowBoxCenter(fromB), c2 = flowBoxCenter(toB);
+    const mid = { x:(c1.x+c2.x)/2, y:(c1.y+c2.y)/2 };
+    flowFab.innerHTML = '<button type="button" class="del" data-act="delArrow" title="ลบลูกศร">🗑 ลบลูกศร</button>';
+    const pos = flowRefToWrapCss(mid.x, mid.y);
+    flowFab.style.left = pos.x + 'px';
+    flowFab.style.top = pos.y + 'px';
+    flowFab.hidden = false;
+  }
+
+  flowFab.addEventListener('click', function(e){
+    const btn = e.target.closest('button');
+    if(!btn) return;
+    const act = btn.dataset.act;
+    if(act === 'edit' && flowSelectedBoxId){ openFlowTextEditor(getFlowBox(flowSelectedBoxId)); }
+    else if(act === 'img' && flowSelectedBoxId){ flowPendingImageBoxId = flowSelectedBoxId; flowImgInput.click(); }
+    else if(act === 'del' && flowSelectedBoxId){ deleteFlowBox(flowSelectedBoxId); }
+    else if(act === 'delArrow' && flowSelectedArrowId){ deleteFlowArrow(flowSelectedArrowId); }
+  });
+
+  function deleteFlowBox(id){
+    flowBoxes = flowBoxes.filter(function(b){ return b.id !== id; });
+    flowArrows = flowArrows.filter(function(a){ return a.from !== id && a.to !== id; });
+    flowSelectedBoxId = null;
+    hideFlowFab();
     drawFlow();
   }
 
-  function getFlowCanvasPos(evt){
-    const rect = flowCanvas.getBoundingClientRect();
-    const scaleX = flowCanvas.width / rect.width;
-    const scaleY = flowCanvas.height / rect.height;
-    return { x: (evt.clientX - rect.left) * scaleX, y: (evt.clientY - rect.top) * scaleY };
+  function deleteFlowArrow(id){
+    flowArrows = flowArrows.filter(function(a){ return a.id !== id; });
+    flowSelectedArrowId = null;
+    hideFlowFab();
+    drawFlow();
   }
 
-  function openFlowTextEditor(box){
-    const existing = flowWrap.querySelector('.flow-edit-box');
-    if(existing) existing.remove();
+  function openFlowTextEditor(b){
+    closeFlowEditor();
+    const pos = flowRefToWrapCss(b.x, b.y);
     const rect = flowCanvas.getBoundingClientRect();
-    const wrapRect = flowWrap.getBoundingClientRect();
-    const scaleX = rect.width / flowCanvas.width;
-    const scaleY = rect.height / flowCanvas.height;
-
+    const sx = rect.width / REF_W, sy = rect.height / REF_H;
     const ta = document.createElement('textarea');
     ta.className = 'flow-edit-box';
-    ta.value = box.text;
-    ta.style.left = (rect.left - wrapRect.left + box.x*scaleX) + 'px';
-    ta.style.top = (rect.top - wrapRect.top + box.y*scaleY) + 'px';
-    ta.style.width = (box.w*scaleX) + 'px';
-    ta.style.height = (box.h*scaleY) + 'px';
+    ta.value = b.text || '';
+    ta.style.left = pos.x + 'px';
+    ta.style.top = pos.y + 'px';
+    ta.style.width = (b.w*sx) + 'px';
+    ta.style.height = (b.h*sy) + 'px';
     flowWrap.appendChild(ta);
     ta.focus();
     ta.select();
-
+    flowEditingBox = ta;
     function commit(){
-      box.text = ta.value;
-      if(ta.parentNode) ta.parentNode.removeChild(ta);
+      b.text = ta.value.trim();
+      autoFitFlowBoxHeight(b);
+      closeFlowEditor();
+      if(flowSelectedBoxId === b.id) positionFabForFlowBox(b);
       drawFlow();
     }
     ta.addEventListener('blur', commit);
     ta.addEventListener('keydown', function(ev){
-      if(ev.key==='Enter' && !ev.shiftKey){ ev.preventDefault(); ta.blur(); }
-      else if(ev.key==='Escape'){ ta.value = box.text; ta.blur(); }
+      if(ev.key === 'Enter' && !ev.shiftKey){ ev.preventDefault(); ta.blur(); }
+      if(ev.key === 'Escape'){ ta.value = b.text || ''; ta.blur(); }
     });
   }
 
+  flowCanvas.addEventListener('dblclick', function(e){
+    const pos = getFlowPos(e);
+    const b = hitFlowBox(pos.x, pos.y);
+    if(b) openFlowTextEditor(b);
+  });
+
   flowCanvas.addEventListener('pointerdown', function(e){
+    closeFlowEditor();
     flowCanvas.setPointerCapture(e.pointerId);
-    const pos = getFlowCanvasPos(e);
-    const box = hitFlowBox(pos.x,pos.y);
+    const pos = getFlowPos(e);
 
     if(flowArrowMode){
-      if(box){
-        if(!flowArrowSourceId){
-          flowArrowSourceId = box.id;
-        } else if(flowArrowSourceId !== box.id){
-          flowArrows.push({ id: flowUid('a'), from:flowArrowSourceId, to:box.id });
-          flowArrowSourceId = null;
-          flowArrowMode = false;
-          document.getElementById('btn-flow-addarrow').classList.remove('active-mode');
-          document.getElementById('btn-flow-addarrow').textContent = '➚ เพิ่มลูกศร';
-        }
-      } else {
+      const b = hitFlowBox(pos.x, pos.y);
+      if(!b) return;
+      if(!flowArrowSourceId){
+        flowArrowSourceId = b.id;
+        drawFlow();
+      } else if(flowArrowSourceId !== b.id){
+        flowArrows.push({ id: flowUid('a'), from: flowArrowSourceId, to: b.id });
         flowArrowSourceId = null;
+        flowArrowMode = false;
+        flowArrowBanner.classList.remove('show');
+        document.getElementById('btn-flow-addarrow').classList.remove('active-mode');
+        drawFlow();
       }
+      return;
+    }
+
+    const b = hitFlowBox(pos.x, pos.y);
+    if(b){
+      flowSelectedBoxId = b.id;
+      flowSelectedArrowId = null;
+      flowDrag = { id: b.id, offX: pos.x - b.x, offY: pos.y - b.y };
+      showFabForFlowBox(b);
       drawFlow();
       return;
     }
 
-    if(box){
-      flowSelectedBoxId = box.id;
-      flowSelectedArrowId = null;
-      flowDrag = { id: box.id, offX: pos.x-box.x, offY: pos.y-box.y };
-    } else {
-      const arrow = hitFlowArrow(pos.x,pos.y);
-      flowSelectedArrowId = arrow ? arrow.id : null;
+    const a = hitFlowArrow(pos.x, pos.y);
+    if(a){
+      flowSelectedArrowId = a.id;
       flowSelectedBoxId = null;
+      showFabForFlowArrow(a);
+      drawFlow();
+      return;
     }
+
+    flowSelectedBoxId = null;
+    flowSelectedArrowId = null;
+    hideFlowFab();
     drawFlow();
   });
 
   flowCanvas.addEventListener('pointermove', function(e){
     if(!flowDrag) return;
-    const pos = getFlowCanvasPos(e);
-    const box = flowBoxes.find(b=>b.id===flowDrag.id);
-    if(!box) return;
-    box.x = Math.max(0, Math.min(flowCanvas.width-box.w, pos.x - flowDrag.offX));
-    box.y = Math.max(0, Math.min(flowCanvas.height-box.h, pos.y - flowDrag.offY));
+    const pos = getFlowPos(e);
+    const b = getFlowBox(flowDrag.id);
+    if(!b) return;
+    b.x = Math.max(0, Math.min(REF_W - b.w, pos.x - flowDrag.offX));
+    b.y = Math.max(0, Math.min(REF_H - b.h, pos.y - flowDrag.offY));
+    positionFabForFlowBox(b);
     drawFlow();
   });
 
   function endFlowDrag(e){
-    if(flowDrag){
-      try{ flowCanvas.releasePointerCapture(e.pointerId); }catch(_){}
-    }
+    if(flowDrag){ try{ flowCanvas.releasePointerCapture(e.pointerId); }catch(_){} }
     flowDrag = null;
   }
   flowCanvas.addEventListener('pointerup', endFlowDrag);
   flowCanvas.addEventListener('pointercancel', endFlowDrag);
 
-  flowCanvas.addEventListener('dblclick', function(e){
-    const pos = getFlowCanvasPos(e);
-    const box = hitFlowBox(pos.x,pos.y);
-    if(box) openFlowTextEditor(box);
+  flowImgInput.addEventListener('change', async function(){
+    const f = flowImgInput.files && flowImgInput.files[0];
+    flowImgInput.value = '';
+    if(!f || !flowPendingImageBoxId) return;
+    const b = getFlowBox(flowPendingImageBoxId);
+    flowPendingImageBoxId = null;
+    if(!b) return;
+    if(!/^image\//.test(f.type)){ setStatus('ไฟล์ที่เลือกไม่ใช่รูปภาพ', 'error'); return; }
+    try{
+      const { dataUrl, naturalW, naturalH } = await fileToImage(f, 480, 480);
+      const el = new Image();
+      el.onload = function(){
+        b.img = { dataUrl: dataUrl, w: naturalW, h: naturalH, el: el };
+        autoFitFlowBoxHeight(b);
+        if(flowSelectedBoxId === b.id) positionFabForFlowBox(b);
+        drawFlow();
+      };
+      el.src = dataUrl;
+    }catch(err){ setStatus('ไม่สามารถอ่านไฟล์รูปภาพนี้ได้', 'error'); }
   });
 
-  function resizeFlowCanvas(){
-    const newW = Math.max(320, Math.min(680, Math.floor(flowWrap.clientWidth) - 2 || 680));
-    const newH = Math.round(newW * 0.6);
-    const oldW = flowCanvas.width || newW, oldH = flowCanvas.height || newH;
-    if(oldW === newW && oldH === newH){ drawFlow(); return; }
-    if(flowBoxes.length){
-      const sx = newW/oldW, sy = newH/oldH;
-      flowBoxes.forEach(b=>{ b.x*=sx; b.y*=sy; b.w*=sx; b.h*=sy; });
-    }
-    flowCanvas.width = newW;
-    flowCanvas.height = newH;
-    drawFlow();
-  }
-  window.addEventListener('resize', function(){ if(currentMode==='flow') resizeFlowCanvas(); });
-
-  document.getElementById('btn-flow-addbox').onclick = addFlowBox;
-
-  document.getElementById('btn-flow-addarrow').onclick = function(){
-    flowArrowMode = !flowArrowMode;
-    flowArrowSourceId = null;
-    this.classList.toggle('active-mode', flowArrowMode);
-    this.textContent = flowArrowMode ? 'แตะกล่องต้นทาง แล้วปลายทาง (กดอีกครั้งเพื่อยกเลิก)' : '➚ เพิ่มลูกศร';
+  document.getElementById('btn-flow-addbox').onclick = function(){
+    const n = flowBoxes.length;
+    const col = n % 3, row = Math.floor(n/3);
+    const b = { id: flowUid('b'), x: 30+col*210, y: 24+row*120, w:170, h:92, text:'', img:null };
+    flowBoxes.push(b);
+    flowSelectedBoxId = b.id;
+    flowSelectedArrowId = null;
+    showFabForFlowBox(b);
     drawFlow();
   };
 
-  document.getElementById('btn-flow-delete').onclick = function(){
-    if(flowSelectedBoxId){
-      flowArrows = flowArrows.filter(a=>a.from!==flowSelectedBoxId && a.to!==flowSelectedBoxId);
-      flowBoxes = flowBoxes.filter(b=>b.id!==flowSelectedBoxId);
-      flowSelectedBoxId = null;
-    } else if(flowSelectedArrowId){
-      flowArrows = flowArrows.filter(a=>a.id!==flowSelectedArrowId);
-      flowSelectedArrowId = null;
-    } else {
-      setStatus('กรุณาแตะเลือกกล่องหรือลูกศรที่ต้องการลบก่อน', 'error');
-      return;
-    }
+  const btnFlowAddArrow = document.getElementById('btn-flow-addarrow');
+  btnFlowAddArrow.onclick = function(){
+    flowArrowMode = !flowArrowMode;
+    flowArrowSourceId = null;
+    btnFlowAddArrow.classList.toggle('active-mode', flowArrowMode);
+    flowArrowBanner.classList.toggle('show', flowArrowMode);
+    flowSelectedBoxId = null; flowSelectedArrowId = null; hideFlowFab();
     drawFlow();
   };
 
@@ -860,11 +1094,32 @@
     flowBoxes = []; flowArrows = [];
     flowSelectedBoxId = null; flowSelectedArrowId = null;
     flowArrowMode = false; flowArrowSourceId = null;
-    document.getElementById('btn-flow-addarrow').classList.remove('active-mode');
-    document.getElementById('btn-flow-addarrow').textContent = '➚ เพิ่มลูกศร';
+    hideFlowFab();
+    btnFlowAddArrow.classList.remove('active-mode');
+    flowArrowBanner.classList.remove('show');
     drawFlow();
   };
 
+  function resizeFlowCanvas(){ setupFlowDPR(); drawFlow(); if(flowSelectedBoxId){ const b=getFlowBox(flowSelectedBoxId); if(b) positionFabForFlowBox(b); } }
+  window.addEventListener('resize', function(){ if(currentMode==='flow') resizeFlowCanvas(); });
+  if(window.ResizeObserver){ new ResizeObserver(function(){ if(currentMode==='flow') resizeFlowCanvas(); }).observe(flowWrap); }
+
+  // Renders the current Flow diagram to a fixed-resolution offscreen canvas
+  // (independent of the viewer's screen DPR) so the image embedded into the
+  // exported Excel file is always sharp and a predictable, reasonable size.
+  function renderFlowForExport(){
+    const EXPORT_SCALE = 2;
+    const off = document.createElement('canvas');
+    off.width = REF_W * EXPORT_SCALE;
+    off.height = REF_H * EXPORT_SCALE;
+    const offCtx = off.getContext('2d');
+    offCtx.setTransform(EXPORT_SCALE, 0, 0, EXPORT_SCALE, 0, 0);
+    const prevCtx = flowCtx;
+    flowCtx = offCtx;
+    try{ drawFlow(); } finally { flowCtx = prevCtx; }
+    drawFlow();
+    return { dataUrl: off.toDataURL('image/png'), width: off.width, height: off.height };
+  }
   async function handleImageInput(step, file){
     if(!file) return;
     if(!/^image\//.test(file.type)){ setStatus('ไฟล์ที่เลือกไม่ใช่รูปภาพ', 'error'); return; }
@@ -986,9 +1241,10 @@
     flowBoxes = []; flowArrows = [];
     flowSelectedBoxId = null; flowSelectedArrowId = null;
     flowArrowMode = false; flowArrowSourceId = null;
-    const flowArrowBtn = document.getElementById('btn-flow-addarrow');
-    flowArrowBtn.classList.remove('active-mode');
-    flowArrowBtn.textContent = '➚ เพิ่มลูกศร';
+    hideFlowFab();
+    btnFlowAddArrow.classList.remove('active-mode');
+    flowArrowBanner.classList.remove('show');
+    setupFlowDPR();
     drawFlow();
     currentMode = 'table';
     modeToggle.querySelectorAll('.mode-pill').forEach(b=>b.classList.toggle('active', b.dataset.mode==='table'));
@@ -1240,8 +1496,9 @@
       r++;
 
       if(currentMode==='flow'){
-        const flowDataUrl = flowCanvas.toDataURL('image/png');
-        const fit = fitSize(flowCanvas.width, flowCanvas.height, 700, 1000);
+        const flowExport = renderFlowForExport();
+        const flowDataUrl = flowExport.dataUrl;
+        const fit = fitSize(flowExport.width, flowExport.height, 700, 1000);
         ws.mergeCells(r,1,r,6);
         const flowCell = ws.getCell(r,1);
         flowCell.alignment = { horizontal:'center', vertical:'middle' };
