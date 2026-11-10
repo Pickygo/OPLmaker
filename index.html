@@ -1738,6 +1738,42 @@
     setTimeout(()=>URL.revokeObjectURL(url), 4000);
   }
 
+  function blobToDataURL(blob){
+    return new Promise(function(resolve, reject){
+      const reader = new FileReader();
+      reader.onload = function(){ resolve(reader.result); };
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  }
+
+  // Fills an already-open blank tab (see the fallbackTab comment in
+  // doDownload/doEmail) with a small page of its own: a big download button
+  // carrying the real file name, auto-clicked immediately. This gives the
+  // download attribute a second, simpler context to work in, and — even if
+  // that auto-click is also blocked — leaves the person a clearly labeled
+  // button to tap by hand, instead of a bare, unlabeled data: URL.
+  async function fillFallbackDownloadTab(tab, blob, fileName){
+    const dataUrl = await blobToDataURL(blob);
+    const safeName = fileName.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    tab.document.open();
+    tab.document.write(
+      '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+      '<meta name="viewport" content="width=device-width, initial-scale=1.0">' +
+      '<title>' + safeName + '</title></head>' +
+      '<body style="margin:0;padding:32px 20px;font-family:\'Segoe UI\',sans-serif;text-align:center;background:#eef1f5;color:#1f2937;">' +
+      '<p style="font-weight:600;">กำลังเปิดไฟล์ Excel…</p>' +
+      '<p><a id="fallback-dl-link" href="' + dataUrl + '" download="' + safeName + '" ' +
+      'style="display:inline-block;margin-top:10px;padding:14px 24px;background:#1e3a5f;color:#fff;' +
+      'text-decoration:none;border-radius:10px;font-weight:700;">⬇ ดาวน์โหลด ' + safeName + '</a></p>' +
+      '<p style="color:#6b7280;font-size:0.85rem;margin-top:18px;">ถ้ากดอัตโนมัติแล้วไม่มีไฟล์ขึ้นมา ให้แตะปุ่มด้านบนด้วยตนเอง</p>' +
+      '</body></html>'
+    );
+    tab.document.close();
+    const link = tab.document.getElementById('fallback-dl-link');
+    if(link) link.click();
+  }
+
   const btnShare = document.getElementById('btn-share');
   const btnDownload = document.getElementById('btn-download');
   const btnEmail = document.getElementById('btn-email');
@@ -1783,29 +1819,59 @@
   }
 
   async function doDownload(){
+    // In-app/embedded mobile browsers (LINE, Facebook, Instagram, Messenger,
+    // generic Android WebView) often silently ignore the invisible
+    // <a download> click below — nothing happens and there is nothing to
+    // catch. For those, also open a blank tab right now, synchronously,
+    // while the click's user-gesture permission is still fresh (opening one
+    // later, after the async file-building below, would usually get
+    // popup-blocked), then navigate it to the file once it's ready: a plain
+    // navigation to a data: URL goes through that browser's own native
+    // download/open handling instead of relying on the download attribute.
+    let fallbackTab = null;
+    if(isInAppBrowser()){
+      try{ fallbackTab = window.open('', '_blank'); }catch(_){}
+    }
     const result = await buildWorkbookBlob();
-    if(!result) return;
+    if(!result){ if(fallbackTab){ try{ fallbackTab.close(); }catch(_){} } return; }
     const { blob, fileName } = result;
     triggerFileDownload(blob, fileName);
+    if(fallbackTab){
+      try{
+        await fillFallbackDownloadTab(fallbackTab, blob, fileName);
+      }catch(_){
+        try{ fallbackTab.close(); }catch(__){}
+      }
+    }
     if(isInAppBrowser()){
-      setStatus('กดดาวน์โหลดแล้ว ถ้าไม่มีไฟล์ขึ้นมา ให้แตะ "···" มุมขวาบนแล้วเลือก "เปิดใน Chrome/Safari" หรือลองปุ่ม "แชร์ไฟล์" แทน', 'error');
+      setStatus('กดดาวน์โหลดแล้ว — ถ้ามีแท็บใหม่เปิดขึ้น ให้กดปุ่มดาวน์โหลดในแท็บนั้น ถ้ายังไม่มีไฟล์ขึ้นมาเลย ให้แตะ "···" มุมขวาบนแล้วเลือก "เปิดใน Chrome/Safari" แล้วลองกดดาวน์โหลดอีกครั้ง', 'error');
     } else {
       setStatus('ดาวน์โหลดไฟล์ Excel เรียบร้อยแล้ว ✓', 'ok');
     }
   }
 
   async function doEmail(){
+    // Same pre-opened-tab trick as doDownload (see its comment): opened
+    // synchronously here, before any await, so it's still available as a
+    // fallback if we end up on the mailto: path below and the in-app
+    // browser ignores the invisible <a download>. Closed unused if the
+    // Web Share path below succeeds instead.
+    let fallbackTab = null;
+    if(isInAppBrowser()){
+      try{ fallbackTab = window.open('', '_blank'); }catch(_){}
+    }
     const result = await buildWorkbookBlob();
-    if(!result) return;
+    if(!result){ if(fallbackTab){ try{ fallbackTab.close(); }catch(_){} } return; }
     const { blob, fileName } = result;
     const shareFile = new File([blob], fileName, { type: blob.type });
     if(navigator.canShare && navigator.share && navigator.canShare({ files: [shareFile] })){
       try{
         await navigator.share({ files: [shareFile], title: fileName });
+        if(fallbackTab){ try{ fallbackTab.close(); }catch(_){} }
         setStatus('เปิดเมนูแชร์แล้ว เลือกแอปอีเมล (Gmail/Mail) เพื่อส่งไฟล์แนบ ✓', 'ok');
         return;
       }catch(err){
-        if(err && err.name === 'AbortError'){ setStatus('', ''); return; }
+        if(err && err.name === 'AbortError'){ if(fallbackTab){ try{ fallbackTab.close(); }catch(_){} } setStatus('', ''); return; }
         // Any other share failure: fall through to the mailto fallback below.
       }
     }
@@ -1813,6 +1879,13 @@
     // the user's email app with the subject/body ready, and ask them to attach
     // the just-downloaded file manually.
     triggerFileDownload(blob, fileName);
+    if(fallbackTab){
+      try{
+        await fillFallbackDownloadTab(fallbackTab, blob, fileName);
+      }catch(_){
+        try{ fallbackTab.close(); }catch(__){}
+      }
+    }
     const subject = encodeURIComponent('OPL: ' + fileName.replace(/\.xlsx$/i,''));
     const body = encodeURIComponent('ไฟล์ดาวน์โหลดไว้ให้แล้วในชื่อ "'+fileName+'" กรุณาแนบไฟล์นี้ก่อนส่งอีเมล');
     window.location.href = 'mailto:?subject='+subject+'&body='+body;
